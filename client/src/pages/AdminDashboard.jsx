@@ -4,7 +4,7 @@ import CrisisMap from '../components/CrisisMap';
 import { ShieldAlert, Users, Building2, CheckCircle2, Clock, MapPin, Filter, BarChart3, AlertOctagon, Layers } from 'lucide-react';
 
 export default function AdminDashboard({ setActiveTab, setSelectedRequestId }) {
-  const { requests } = useCrisis();
+  const { requests, exportRequestsCsv } = useCrisis();
   const [mapCategory, setMapCategory] = useState('All');
 
   const criticalCount = requests.filter(r => r.urgency === 'Critical' && r.status !== 'Resolved').length;
@@ -32,16 +32,22 @@ export default function AdminDashboard({ setActiveTab, setSelectedRequestId }) {
           </p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={exportRequestsCsv}
+            className="px-4 py-2.5 bg-emerald-950 hover:bg-emerald-900 text-emerald-300 font-bold rounded-xl border border-emerald-800 text-xs flex items-center gap-1.5 transition-all"
+          >
+            <span>📊 Export Incident CSV</span>
+          </button>
           <button
             onClick={() => setActiveTab('moderation')}
-            className="px-4 py-2.5 bg-amber-950 hover:bg-amber-900 text-amber-300 font-bold rounded-xl border border-amber-800 text-xs flex items-center gap-1.5"
+            className="px-4 py-2.5 bg-amber-950 hover:bg-amber-900 text-amber-300 font-bold rounded-xl border border-amber-800 text-xs flex items-center gap-1.5 transition-all"
           >
             <span>🔍 Duplicate Moderation</span>
           </button>
           <button
             onClick={() => setActiveTab('ai-triage')}
-            className="px-4 py-2.5 bg-purple-900 hover:bg-purple-800 text-white font-bold rounded-xl text-xs flex items-center gap-1.5"
+            className="px-4 py-2.5 bg-purple-900 hover:bg-purple-800 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all"
           >
             <span>🧠 AI Severity Engine</span>
           </button>

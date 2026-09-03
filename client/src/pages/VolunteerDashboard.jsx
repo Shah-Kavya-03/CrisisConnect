@@ -172,7 +172,21 @@ export default function VolunteerDashboard({ setActiveTab, setSelectedRequestId 
                       onClick={() => updateRequestStatus(req.id, 'Assigned')}
                       className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-extrabold text-xs shadow-lg transition-transform hover:scale-105 border border-red-400/40"
                     >
-                      ⚡ Accept Assignment
+                      ⚡ Claim & Accept (30m Lease)
+                    </button>
+                  ) : req.status === 'Assigned' ? (
+                    <button
+                      onClick={() => updateRequestStatus(req.id, 'En Route')}
+                      className="flex-1 py-3 px-4 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-extrabold text-xs shadow-lg transition-transform hover:scale-105 border border-amber-400/40"
+                    >
+                      🚚 Mark En Route
+                    </button>
+                  ) : req.status === 'En Route' ? (
+                    <button
+                      onClick={() => updateRequestStatus(req.id, 'Resolved')}
+                      className="flex-1 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-lg transition-transform hover:scale-105 border border-emerald-400/40"
+                    >
+                      ✅ Mark Complete & Resolved
                     </button>
                   ) : (
                     <button
@@ -190,7 +204,7 @@ export default function VolunteerDashboard({ setActiveTab, setSelectedRequestId 
                     }}
                     className="flex-1 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 font-bold text-xs border border-slate-800 flex items-center justify-center gap-1"
                   >
-                    <span>View Details</span>
+                    <span>View Dossier & Map</span>
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
