@@ -9,6 +9,7 @@ import volunteerRoutes from './routes/volunteerRoutes.js';
 import organizationRoutes from './routes/organizationRoutes.js';
 import matchRoutes from './routes/matchRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 import { errorHandler } from './middleware/errorMiddleware.js';
 import { apiLimiter } from './middleware/rateLimiter.js';
 
@@ -43,6 +44,7 @@ app.use('/api/volunteers', volunteerRoutes);
 app.use('/api/organizations', organizationRoutes);
 app.use('/api/matches', matchRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/admin', adminRoutes);
 
 // 404 Catch-all handler
 app.use((req, res, next) => {

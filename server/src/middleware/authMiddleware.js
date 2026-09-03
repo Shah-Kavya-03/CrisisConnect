@@ -40,3 +40,27 @@ export const protect = async (req, res, next) => {
     });
   }
 };
+
+// Restrict access strictly to Admin role
+export const adminOnly = (req, res, next) => {
+  if (req.user && req.user.role === 'Admin') {
+    return next();
+  }
+  return res.status(403).json({
+    success: false,
+    message: 'Forbidden: Requires Central Administrator authority'
+  });
+};
+
+// Generic role authorizer
+export const authorize = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: `Forbidden: Role '${req.user?.role}' is not authorized to access this resource`
+      });
+    }
+    next();
+  };
+};

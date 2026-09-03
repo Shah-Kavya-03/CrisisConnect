@@ -77,7 +77,6 @@ const SEED_REQUESTS = [
       id: 'NGO-102',
       name: 'Red Cross Relief Team B',
       type: 'Registered NGO',
-      trustScore: 99,
       phone: '+91 90000 11111'
     },
     timeline: [
@@ -207,7 +206,6 @@ const seedDB = async () => {
         address: 'Red Cross Relief Headquarters',
         coordinates: { lat: 28.6100, lng: 77.2050 }
       },
-      trustScore: 99,
       badges: ['🤝 NGO Partner'],
       isVerified: true
     });

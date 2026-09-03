@@ -27,9 +27,16 @@ export default function Navbar({ activeTab, setActiveTab }) {
 
   const isRequester = user?.role === 'Requester';
   const isVolunteer = user?.role === 'Volunteer';
-  const isNgo = user?.role === 'NGO' || user?.role === 'Admin';
+  const isNgo = user?.role === 'NGO';
+  const isAdmin = user?.role === 'Admin';
 
-  const roleLabel = isNgo ? 'NGO Agency Leader' : isVolunteer ? 'Field Volunteer' : 'Citizen Requester';
+  const roleLabel = isAdmin 
+    ? 'Central Administrator' 
+    : isNgo 
+    ? 'NGO Agency Leader' 
+    : isVolunteer 
+    ? 'Field Volunteer' 
+    : 'Citizen Requester';
 
   return (
     <header className="sticky top-0 z-40 bg-[#071E2B]/95 backdrop-blur-md border-b border-cyan-900/50 shadow-xl shadow-cyan-950/20">
@@ -111,19 +118,54 @@ export default function Navbar({ activeTab, setActiveTab }) {
               </>
             )}
 
-            {/* NGO AGENCY ROLE ONLY FEATURES */}
+            {/* NGO AGENCY ROLE ONLY FEATURES (No Trust Scores) */}
             {isNgo && (
               <>
                 <button
-                  onClick={() => setActiveTab('admin-command')}
+                  onClick={() => setActiveTab('ngo-dashboard')}
                   className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                    activeTab === 'admin-command'
+                    activeTab === 'ngo-dashboard'
                       ? 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white shadow border border-teal-400/40'
                       : 'text-cyan-200/70 hover:text-white'
                   }`}
                 >
                   <Building2 className="w-3.5 h-3.5 text-teal-300" />
                   <span>NGO Command Center</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('moderation')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    activeTab === 'moderation' ? 'bg-amber-950/80 text-amber-300 border border-amber-500/50' : 'text-cyan-200/70 hover:text-white'
+                  }`}
+                >
+                  AI Duplicate Moderation
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('ai-triage')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    activeTab === 'ai-triage' ? 'bg-cyan-950/80 text-cyan-300 border border-cyan-500/50' : 'text-cyan-200/70 hover:text-white'
+                  }`}
+                >
+                  AI Severity Triage
+                </button>
+              </>
+            )}
+
+            {/* ADMIN ROLE ONLY CENTRAL COMMAND */}
+            {isAdmin && (
+              <>
+                <button
+                  onClick={() => setActiveTab('admin-dashboard')}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    activeTab === 'admin-dashboard'
+                      ? 'bg-gradient-to-r from-cyan-600 to-teal-600 text-white shadow border border-cyan-400/40'
+                      : 'text-cyan-200/70 hover:text-white'
+                  }`}
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-cyan-300" />
+                  <span>Central Admin Operations</span>
                 </button>
 
                 <button
@@ -339,7 +381,7 @@ export default function Navbar({ activeTab, setActiveTab }) {
           {isNgo && (
             <>
               <button
-                onClick={() => { setActiveTab('admin-command'); setMobileMenuOpen(false); }}
+                onClick={() => { setActiveTab('ngo-dashboard'); setMobileMenuOpen(false); }}
                 className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-teal-300 bg-teal-950/40"
               >
                 NGO Command Center
@@ -353,6 +395,29 @@ export default function Navbar({ activeTab, setActiveTab }) {
               <button
                 onClick={() => { setActiveTab('ai-triage'); setMobileMenuOpen(false); }}
                 className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-cyan-300 bg-cyan-950/40"
+              >
+                AI Severity Triage
+              </button>
+            </>
+          )}
+
+          {isAdmin && (
+            <>
+              <button
+                onClick={() => { setActiveTab('admin-dashboard'); setMobileMenuOpen(false); }}
+                className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-cyan-300 bg-cyan-950/40"
+              >
+                Central Admin Operations
+              </button>
+              <button
+                onClick={() => { setActiveTab('moderation'); setMobileMenuOpen(false); }}
+                className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-amber-300 bg-amber-950/40"
+              >
+                AI Duplicate Moderation
+              </button>
+              <button
+                onClick={() => { setActiveTab('ai-triage'); setMobileMenuOpen(false); }}
+                className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-teal-300 bg-teal-950/40"
               >
                 AI Severity Triage
               </button>

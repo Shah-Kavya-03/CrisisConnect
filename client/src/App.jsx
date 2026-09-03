@@ -10,6 +10,7 @@ import VolunteerDashboard from './pages/VolunteerDashboard';
 import RequestDetailsPage from './pages/RequestDetailsPage';
 import TrustScorePage from './pages/TrustScorePage';
 import AdminDashboard from './pages/AdminDashboard';
+import NgoDashboard from './pages/NgoDashboard';
 import DuplicateModerationPage from './pages/DuplicateModerationPage';
 import AiTriagePage from './pages/AiTriagePage';
 import Login from './pages/Login';
@@ -23,12 +24,14 @@ function MainAppContent() {
   // Auto-route logged in user to their role-specific default portal
   useEffect(() => {
     if (user) {
-      if (user.role === 'Requester') {
-        setActiveTab('requester-dashboard');
-      } else if (user.role === 'NGO' || user.role === 'Admin') {
-        setActiveTab('admin-command');
+      if (user.role === 'Admin') {
+        setActiveTab('admin-dashboard');
+      } else if (user.role === 'NGO') {
+        setActiveTab('ngo-dashboard');
       } else if (user.role === 'Volunteer') {
         setActiveTab('volunteer-feed');
+      } else if (user.role === 'Requester') {
+        setActiveTab('requester-dashboard');
       } else {
         setActiveTab('landing');
       }
@@ -54,40 +57,74 @@ function MainAppContent() {
   const renderActivePage = () => {
     const isRequester = user?.role === 'Requester';
     const isVolunteer = user?.role === 'Volunteer';
-    const isNgo = user?.role === 'NGO' || user?.role === 'Admin';
+    const isNgo = user?.role === 'NGO';
+    const isAdmin = user?.role === 'Admin';
 
     switch (activeTab) {
       case 'landing':
         return <LandingPage setActiveTab={setActiveTab} />;
 
-      // REQUESTER ONLY PAGES
+      // 1. ADMIN ONLY OVERWATCH
+      case 'admin-dashboard':
+        return isAdmin ? (
+          <AdminDashboard setActiveTab={setActiveTab} setSelectedRequestId={setSelectedRequestId} />
+        ) : isNgo ? (
+          <NgoDashboard setActiveTab={setActiveTab} setSelectedRequestId={setSelectedRequestId} />
+        ) : isVolunteer ? (
+          <VolunteerDashboard setActiveTab={setActiveTab} setSelectedRequestId={setSelectedRequestId} />
+        ) : (
+          <RequesterDashboard setActiveTab={setActiveTab} />
+        );
+
+      // 2. NGO AGENCY PORTAL (NO TRUST SCORES)
+      case 'ngo-dashboard':
+        return (isNgo || isAdmin) ? (
+          <NgoDashboard setActiveTab={setActiveTab} setSelectedRequestId={setSelectedRequestId} />
+        ) : (
+          <RequesterDashboard setActiveTab={setActiveTab} />
+        );
+
+      // 3. CITIZEN REQUESTER PAGES
       case 'requester-dashboard':
         return isRequester ? <RequesterDashboard setActiveTab={setActiveTab} /> : <VolunteerDashboard setActiveTab={setActiveTab} setSelectedRequestId={setSelectedRequestId} />;
       case 'create-request':
         return isRequester ? <RequestCreationPage setActiveTab={setActiveTab} /> : <RequesterDashboard setActiveTab={setActiveTab} />;
 
-      // VOLUNTEER ONLY PAGES
+      // 4. VOLUNTEER RESPONDER PAGES
       case 'volunteer-feed':
-        return isVolunteer ? <VolunteerDashboard setActiveTab={setActiveTab} setSelectedRequestId={setSelectedRequestId} /> : isNgo ? <AdminDashboard setActiveTab={setActiveTab} setSelectedRequestId={setSelectedRequestId} /> : <RequesterDashboard setActiveTab={setActiveTab} />;
+        return isVolunteer ? (
+          <VolunteerDashboard setActiveTab={setActiveTab} setSelectedRequestId={setSelectedRequestId} />
+        ) : isAdmin ? (
+          <AdminDashboard setActiveTab={setActiveTab} setSelectedRequestId={setSelectedRequestId} />
+        ) : isNgo ? (
+          <NgoDashboard setActiveTab={setActiveTab} setSelectedRequestId={setSelectedRequestId} />
+        ) : (
+          <RequesterDashboard setActiveTab={setActiveTab} />
+        );
       case 'trust-score':
-        return isVolunteer ? <TrustScorePage /> : <VolunteerDashboard setActiveTab={setActiveTab} setSelectedRequestId={setSelectedRequestId} />;
+        return isVolunteer ? (
+          <TrustScorePage />
+        ) : isAdmin ? (
+          <AdminDashboard setActiveTab={setActiveTab} setSelectedRequestId={setSelectedRequestId} />
+        ) : (
+          <VolunteerDashboard setActiveTab={setActiveTab} setSelectedRequestId={setSelectedRequestId} />
+        );
 
-      // NGO AGENCY ONLY PAGES
-      case 'admin-command':
-        return isNgo ? <AdminDashboard setActiveTab={setActiveTab} setSelectedRequestId={setSelectedRequestId} /> : isVolunteer ? <VolunteerDashboard setActiveTab={setActiveTab} setSelectedRequestId={setSelectedRequestId} /> : <RequesterDashboard setActiveTab={setActiveTab} />;
+      // 5. SHARED MODERATION & TRIAGE (Admin and NGO)
       case 'moderation':
-        return isNgo ? <DuplicateModerationPage /> : <AdminDashboard setActiveTab={setActiveTab} setSelectedRequestId={setSelectedRequestId} />;
+        return (isAdmin || isNgo) ? <DuplicateModerationPage /> : <VolunteerDashboard setActiveTab={setActiveTab} setSelectedRequestId={setSelectedRequestId} />;
       case 'ai-triage':
-        return isNgo ? <AiTriagePage /> : <AdminDashboard setActiveTab={setActiveTab} setSelectedRequestId={setSelectedRequestId} />;
+        return (isAdmin || isNgo) ? <AiTriagePage /> : <VolunteerDashboard setActiveTab={setActiveTab} setSelectedRequestId={setSelectedRequestId} />;
 
       // SHARED DETAILS PAGE
       case 'request-details':
         return <RequestDetailsPage setActiveTab={setActiveTab} />;
 
       default:
-        if (isRequester) return <RequesterDashboard setActiveTab={setActiveTab} />;
+        if (isAdmin) return <AdminDashboard setActiveTab={setActiveTab} setSelectedRequestId={setSelectedRequestId} />;
+        if (isNgo) return <NgoDashboard setActiveTab={setActiveTab} setSelectedRequestId={setSelectedRequestId} />;
         if (isVolunteer) return <VolunteerDashboard setActiveTab={setActiveTab} setSelectedRequestId={setSelectedRequestId} />;
-        return <AdminDashboard setActiveTab={setActiveTab} setSelectedRequestId={setSelectedRequestId} />;
+        return <RequesterDashboard setActiveTab={setActiveTab} />;
     }
   };
 

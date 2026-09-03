@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useCrisis } from '../context/CrisisContext';
+import { authService } from '../services/authService';
 import Logo from '../components/Logo';
 import { Lock, Mail, User, Phone, CheckCircle2, ArrowRight, AlertCircle, Building2, HeartHandshake } from 'lucide-react';
 
@@ -35,30 +36,57 @@ export default function Signup({ setAuthMode }) {
     });
   };
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg('');
 
-    setTimeout(() => {
-      setUser({
-        name: formData.name || 'New Member',
+    try {
+      // Register with database API collection
+      const data = await authService.register({
+        name: formData.name,
         email: formData.email,
-        phone: formData.phone || '+91 98765 43210',
+        phone: formData.phone,
+        password: formData.password,
         role: formData.role,
-        trustScore: 90,
-        completedAssignments: 0,
-        abandonedAssignments: 0,
-        avgResponseMinutes: 15,
-        badges: formData.role === 'Volunteer' 
-          ? ['🔰 Newly Verified Responder', '⚡ Emergency Standby']
-          : formData.role === 'NGO'
-          ? ['🏛️ Registered NGO Agency']
-          : ['🔰 Verified Citizen']
+        skills: formData.role === 'Volunteer' ? formData.skills : undefined
       });
-      setActiveRole(formData.role);
+
+      if (data && data.user) {
+        setUser(data.user);
+        setActiveRole(data.user.role);
+      }
+    } catch (err) {
+      console.warn('Backend registration error:', err);
+
+      // Resilient fallback for offline demonstration
+      if (err.message === 'Network Error' || err.code === 'ERR_NETWORK') {
+        const fallbackUser = {
+          name: formData.name || 'New Member',
+          email: formData.email,
+          phone: formData.phone || '+91 98765 43210',
+          role: formData.role,
+          // Note: NGOs have NO trust score
+          trustScore: formData.role === 'NGO' ? undefined : 90,
+          completedAssignments: 0,
+          abandonedAssignments: 0,
+          avgResponseMinutes: 15,
+          badges: formData.role === 'Volunteer' 
+            ? ['🔰 Newly Verified Responder', '⚡ Emergency Standby']
+            : formData.role === 'NGO'
+            ? ['🏢 Registered NGO Agency']
+            : ['🔰 Verified Citizen']
+        };
+        setUser(fallbackUser);
+        setActiveRole(formData.role);
+        setLoading(false);
+        return;
+      }
+
+      setErrorMsg(err.message || 'Registration failed. Please check inputs and try again.');
+    } finally {
       setLoading(false);
-    }, 400);
+    }
   };
 
   return (
@@ -181,6 +209,7 @@ export default function Signup({ setAuthMode }) {
               <input
                 type="password"
                 required
+                minLength={6}
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 placeholder="••••••••"
@@ -222,7 +251,7 @@ export default function Signup({ setAuthMode }) {
             disabled={loading}
             className="w-full py-3 px-4 bg-gradient-to-r from-cyan-500 via-teal-500 to-sky-500 hover:from-cyan-400 hover:to-sky-400 text-slate-950 rounded-xl text-xs font-black tracking-wide shadow-lg shadow-cyan-900/40 flex items-center justify-center gap-2 transition-all mt-4"
           >
-            {loading ? 'Creating Profile...' : 'Complete Registration'}
+            {loading ? 'Creating Profile in Database...' : 'Complete Registration'}
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>

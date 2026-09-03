@@ -24,8 +24,14 @@ export const register = async (req, res, next) => {
       phone,
       password,
       role: role || 'Requester',
-      trustScore: role === 'Volunteer' ? 90 : role === 'Admin' ? 100 : 85,
-      badges: role === 'Volunteer' ? ['⚡ Registered Responder'] : role === 'Admin' ? ['🛡️ Command Dispatcher'] : ['🔰 Verified Requester']
+      trustScore: role === 'NGO' ? undefined : role === 'Volunteer' ? 90 : role === 'Admin' ? 100 : 85,
+      badges: role === 'Volunteer' 
+        ? ['⚡ Registered Responder'] 
+        : role === 'Admin' 
+        ? ['🛡️ Command Dispatcher'] 
+        : role === 'NGO'
+        ? ['🏢 Registered Agency']
+        : ['🔰 Verified Requester']
     });
 
     // Create role-specific document in dedicated collection
@@ -98,18 +104,26 @@ export const register = async (req, res, next) => {
   }
 };
 
-// @desc    Login user & get token
+// @desc    Login user & get token (supports email or username)
 // @route   POST /api/auth/login
 // @access  Public
 export const login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const identifier = (req.body.email || req.body.username || req.body.identifier || '').trim();
+    const { password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ success: false, message: 'Please provide email and password' });
+    if (!identifier || !password) {
+      return res.status(400).json({ success: false, message: 'Please provide username/email and password' });
     }
 
-    const user = await User.findOne({ email }).select('+password');
+    // Match by email (case-insensitive) or name/username (case-insensitive)
+    const user = await User.findOne({
+      $or: [
+        { email: identifier.toLowerCase() },
+        { name: { $regex: new RegExp(`^${identifier.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i') } }
+      ]
+    }).select('+password');
+
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
@@ -130,7 +144,7 @@ export const login = async (req, res, next) => {
         email: user.email,
         phone: user.phone,
         role: user.role,
-        trustScore: user.trustScore,
+        trustScore: user.role === 'NGO' ? undefined : user.trustScore,
         completedAssignments: user.completedAssignments,
         avgResponseMinutes: user.avgResponseMinutes,
         badges: user.badges

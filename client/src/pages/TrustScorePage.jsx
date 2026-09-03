@@ -17,13 +17,13 @@ export default function TrustScorePage() {
         
         <div>
           <span className="px-3 py-1 bg-teal-950 text-teal-300 border border-teal-500/50 rounded-full text-xs font-bold inline-block mb-2">
-            RESPONDER CREDENTIALS
+            RESPONDER CREDENTIALS • GOVERNED BY PRINCIPAL ADMIN AUTHORITY
           </span>
           <h1 className="text-2xl sm:text-3xl font-black text-white font-outfit">
             Trust & Reliability Profile
           </h1>
           <p className="text-xs sm:text-sm text-cyan-200/80">
-            High trust scores boost dispatch priority and allow responders to accept critical life-safety assignments.
+            Trust scores are exclusively calibrated and verified by the <strong>Principal Admin Authority</strong> based on verified GPS responses and community feedback. Relief NGOs and agencies have no direct authority over trust score ratings.
           </p>
         </div>
 

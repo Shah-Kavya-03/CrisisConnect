@@ -41,7 +41,20 @@ const UserSchema = new mongoose.Schema({
     type: Number,
     min: 0,
     max: 100,
-    default: 85
+    default: function () {
+      if (this.role === 'NGO') return undefined;
+      if (this.role === 'Admin') return 100;
+      if (this.role === 'Volunteer') return 90;
+      return 85;
+    }
+  },
+  trustScoreLastUpdatedBy: {
+    type: String,
+    default: 'Principal Admin Authority'
+  },
+  trustScoreUpdateReason: {
+    type: String,
+    default: 'Baseline Registration Score'
   },
   completedAssignments: {
     type: Number,
