@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # 1. MongoDB with GeoSpatial indexing
+  mongo:
+    image: mongo:7.0
+    container_name: crisisconnect-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - crisis-network
+
+  # 2. Python FastAPI AI Microservice
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: crisisconnect-ai
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - HOST=0.0.0.0
+      - NODE_SERVER_URL=http://server:5000
+    depends_on:
+      - mongo
+    networks:
+      - crisis-network
+
+  # 3. Node.js Express & Socket.io Backend
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: crisisconnect-server
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongo:27017/crisisconnect
+      - JWT_SECRET=crisisconnect_super_secure_jwt_secret_key_2026!
+      - JWT_EXPIRE=30d
+      - PYTHON_AI_SERVICE_URL=http://ai-service:8000
+      - CLIENT_URL=http://localhost:5173
+      - DUPLICATE_CHECK_THRESHOLD=0.70
+      - EXPIRY_CRON_INTERVAL_MS=60000
+    depends_on:
+      - mongo
+      - ai-service
+    networks:
+      - crisis-network
+
+  # 4. React Client (Vite)
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: crisisconnect-client
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - server
+    networks:
+      - crisis-network
+
+networks:
+  crisis-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+    driver: local

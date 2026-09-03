@@ -1,0 +1,144 @@
+import User from '../models/User.js';
+import Volunteer from '../models/Volunteer.js';
+import { generateToken } from '../utils/generateToken.js';
+
+// @desc    Register a new user (Requester, Volunteer, NGO, Admin)
+// @route   POST /api/auth/register
+// @access  Public
+export const register = async (req, res, next) => {
+  try {
+    const { name, email, phone, password, role, skills, vehicleType } = req.body;
+
+    // Check if user already exists
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({ success: false, message: 'User already exists with this email' });
+    }
+
+    const user = await User.create({
+      name,
+      email,
+      phone,
+      password,
+      role: role || 'Requester',
+      trustScore: role === 'Volunteer' ? 90 : 85,
+      badges: role === 'Volunteer' ? ['⚡ Registered Responder'] : ['🔰 Verified Requester']
+    });
+
+    // If registered as volunteer, create volunteer profile
+    if (role === 'Volunteer') {
+      await Volunteer.create({
+        userId: user._id,
+        skills: skills || ['First Aid / BLS', 'Emergency Response'],
+        vehicleType: vehicleType || 'Standard Car / Sedan'
+      }).catch(() => {});
+    }
+
+    const token = generateToken(user._id, user.role);
+
+    res.status(201).json({
+      success: true,
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        trustScore: user.trustScore,
+        badges: user.badges
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Login user & get token
+// @route   POST /api/auth/login
+// @access  Public
+export const login = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: 'Please provide email and password' });
+    }
+
+    const user = await User.findOne({ email }).select('+password');
+    if (!user) {
+      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
+
+    const isMatch = await user.matchPassword(password);
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
+
+    const token = generateToken(user._id, user.role);
+
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        trustScore: user.trustScore,
+        completedAssignments: user.completedAssignments,
+        avgResponseMinutes: user.avgResponseMinutes,
+        badges: user.badges
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get currently logged in user profile
+// @route   GET /api/auth/me
+// @access  Private
+export const getMe = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id || req.user._id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User profile not found' });
+    }
+
+    res.json({
+      success: true,
+      user
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update user profile & trust telemetry
+// @route   PATCH /api/auth/profile
+// @access  Private
+export const updateProfile = async (req, res, next) => {
+  try {
+    const { name, phone, location } = req.body;
+    const user = await User.findById(req.user.id || req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    if (name) user.name = name;
+    if (phone) user.phone = phone;
+    if (location) user.location = location;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      user
+    });
+  } catch (error) {
+    next(error);
+  }
+};
