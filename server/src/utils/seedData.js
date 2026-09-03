@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import User from '../models/User.js';
 import Request from '../models/Request.js';
 import Volunteer from '../models/Volunteer.js';
+import Requester from '../models/Requester.js';
 import Organization from '../models/Organization.js';
 import { logger } from './logger.js';
 
@@ -98,6 +99,7 @@ const seedDB = async () => {
     // Clear existing collections
     await User.deleteMany({});
     await Volunteer.deleteMany({});
+    await Requester.deleteMany({});
     await Organization.deleteMany({});
     await Request.deleteMany({});
 
@@ -226,7 +228,27 @@ const seedDB = async () => {
     });
     logger.success('Volunteer profiles seeded successfully');
 
-    // 4. Seed Requests with references
+    // 4. Seed Requester Profile
+    await Requester.create({
+      userId: requesterUser._id,
+      emergencyContact: {
+        name: 'Rohan Sharma',
+        phone: '+91 98765 11223',
+        relationship: 'Brother'
+      },
+      medicalConditions: ['Diabetic', 'Elderly Family Member'],
+      householdCount: 4,
+      defaultAddress: 'Central Heights, Sector 4, Metro Area',
+      location: {
+        type: 'Point',
+        coordinates: [77.2090, 28.6139]
+      },
+      specialNeedsNotes: 'Requires refrigeration for insulin medication; 1st floor apartment prone to waterlogging.',
+      totalRequestsCreated: 2
+    });
+    logger.success('Requester profiles seeded successfully');
+
+    // 5. Seed Requests with references
     const requestsToSeed = SEED_REQUESTS.map((req, index) => {
       const copy = { ...req };
       if (index === 0) {

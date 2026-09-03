@@ -1,5 +1,7 @@
 import User from '../models/User.js';
 import Volunteer from '../models/Volunteer.js';
+import Requester from '../models/Requester.js';
+import Organization from '../models/Organization.js';
 import { generateToken } from '../utils/generateToken.js';
 
 // @desc    Register a new user (Requester, Volunteer, NGO, Admin)
@@ -7,7 +9,7 @@ import { generateToken } from '../utils/generateToken.js';
 // @access  Public
 export const register = async (req, res, next) => {
   try {
-    const { name, email, phone, password, role, skills, vehicleType } = req.body;
+    const { name, email, phone, password, role = 'Requester', skills, vehicleType } = req.body;
 
     // Check if user already exists
     const userExists = await User.findOne({ email });
@@ -25,13 +27,45 @@ export const register = async (req, res, next) => {
       badges: role === 'Volunteer' ? ['⚡ Registered Responder'] : ['🔰 Verified Requester']
     });
 
-    // If registered as volunteer, create volunteer profile
-    if (role === 'Volunteer') {
+    // Create role-specific document in dedicated collection
+    if (role === 'Requester') {
+      await Requester.create({
+        userId: user._id,
+        emergencyContact: {
+          name: req.body.emergencyContactName || '',
+          phone: req.body.emergencyContactPhone || ''
+        },
+        medicalConditions: req.body.medicalConditions || [],
+        householdCount: req.body.householdCount || 1,
+        defaultAddress: req.body.address || 'Central Metro Area',
+        location: {
+          type: 'Point',
+          coordinates: req.body.coordinates ? [req.body.coordinates.lng, req.body.coordinates.lat] : [77.2090, 28.6139]
+        }
+      }).catch(() => {});
+    } else if (role === 'Volunteer') {
       await Volunteer.create({
         userId: user._id,
         skills: skills || ['First Aid / BLS', 'Emergency Response'],
-        vehicleType: vehicleType || 'Standard Car / Sedan'
+        vehicleType: vehicleType || 'Standard Car / Sedan',
+        currentLocation: {
+          type: 'Point',
+          coordinates: req.body.coordinates ? [req.body.coordinates.lng, req.body.coordinates.lat] : [77.2090, 28.6139]
+        }
       }).catch(() => {});
+    } else if (role === 'NGO') {
+      const org = await Organization.create({
+        name: req.body.organizationName || `${user.name} Relief Foundation`,
+        registrationNumber: req.body.registrationNumber || `NGO-${Math.floor(1000 + Math.random() * 9000)}`,
+        type: req.body.organizationType || 'Registered NGO',
+        contactEmail: user.email,
+        contactPhone: user.phone,
+        jurisdictionCity: req.body.jurisdictionCity || 'Delhi NCR'
+      }).catch(() => {});
+      if (org) {
+        user.organizationId = org._id;
+        await user.save();
+      }
     }
 
     const token = generateToken(user._id, user.role);
