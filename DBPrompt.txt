@@ -1,0 +1,99 @@
+Here is a ready-to-copy, step-by-step prompt that you can send directly to your teammate (or give to an AI agent) to set up and manage the database:
+
+---
+
+### 📋 Copy-Paste Prompt for Your Teammate
+
+```markdown
+Hi! You are responsible for setting up and managing the MongoDB database for **CrisisConnect** (our Centralized Emergency Assistance Platform).
+
+The Mongoose models and database connection logic are already prepared in the backend. Follow these exact steps to get the database running and seeded with real test data:
+
+---
+
+### 1. Database Requirements & Connection Options
+
+Choose either **Option A (Local MongoDB)** or **Option B (Cloud MongoDB Atlas)**:
+
+* **Option A: Local MongoDB Community Server (Recommended for offline testing)**
+  * Ensure MongoDB is installed and running on default port `27017`.
+  * Local URI: `mongodb://localhost:27017/crisisconnect`
+
+* **Option B: MongoDB Atlas (Free Cloud Database)**
+  * Create a free cluster at https://www.mongodb.com/cloud/atlas
+  * Get your connection string: `mongodb+srv://<username>:<password>@cluster0.mongodb.net/crisisconnect?retryWrites=true&w=majority`
+
+---
+
+### 2. Configure the Backend `.env` File
+
+Navigate to the `server/` directory and create/edit `server/.env` with the following variables:
+
+```env
+PORT=5000
+NODE_ENV=development
+MONGODB_URI=mongodb://localhost:27017/crisisconnect
+JWT_SECRET=crisisconnect_super_secure_jwt_secret_key_2026!
+JWT_EXPIRE=30d
+PYTHON_AI_SERVICE_URL=http://localhost:8000
+CLIENT_URL=http://localhost:5173
+DUPLICATE_CHECK_THRESHOLD=0.70
+EXPIRY_CRON_INTERVAL_MS=60000
+```
+*(If using MongoDB Atlas, replace `MONGODB_URI` with your cloud Atlas connection string).*
+
+---
+
+### 3. Install Dependencies & Seed the Database
+
+Run these commands in your terminal inside the project root:
+
+```powershell
+# Step 1: Go to the server directory
+cd server
+
+# Step 2: Install backend dependencies (if not already installed)
+npm install
+
+# Step 3: Populate sample users, emergency SOS requests, volunteers, and shelters
+npm run seed
+```
+
+---
+
+### 4. Verify Database Connection & Start Backend
+
+Start the server:
+```powershell
+npm start
+```
+
+**Expected output upon success:**
+```text
+✔ [SUCCESS] MongoDB Connected: localhost:27017/crisisconnect
+✔ [SUCCESS] CrisisConnect API Server running on port 5000 [development]
+✔ [INFO] REST API: http://localhost:5000/api
+✔ [INFO] WebSocket: ws://localhost:5000
+```
+
+---
+
+### 5. Schema Architecture Reference
+
+All database models are located in `server/src/models/`:
+* **`User.js`**: Users with roles (`CITIZEN`, `VOLUNTEER`, `SHELTER_ADMIN`, `DISPATCHER`) & Trust Scores (0–100).
+* **`Request.js`**: Emergency SOS requests with GeoJSON coordinates `[longitude, latitude]`, `2dsphere` spatial index, AI priority scores (0–100), urgency tiers, and duplicate tracking.
+* **`Match.js`**: Life-Preserving Lease locks (30-minute volunteer claim timer).
+* **`Organization.js`**: Shelters, hospitals, and food banks with capacity & bed occupancy tracking.
+* **`Notification.js`**: System and emergency broadcast alerts.
+
+---
+
+### 6. Health Check Test
+
+Verify your setup by querying the health check endpoint:
+```powershell
+curl http://localhost:5000/api/health
+```
+*(Should return `{"status":"ok"}`)*
+```
