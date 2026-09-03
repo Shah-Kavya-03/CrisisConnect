@@ -195,25 +195,31 @@ export const CrisisProvider = ({ children }) => {
   const [isSimulatingDemo, setIsSimulatingDemo] = useState(false);
 
   // Authenticated User State
-  const [user, setUser] = useState(() => {
+  const [user, setUserState] = useState(() => {
     const saved = localStorage.getItem('crisis_user');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
+      try { 
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.role) return parsed;
+      } catch (e) {}
     }
-    return {
-      id: 'USR-101',
-      name: 'Amit Patel',
-      phone: '+91 98123 45678',
-      role: 'Requester',
-      location: 'Sector 4, Central Metro Area',
-      coordinates: { lat: 28.6139, lng: 77.2090 },
-      trustScore: 92,
-      completedAssignments: 48,
-      abandonedAssignments: 2,
-      avgResponseMinutes: 14,
-      badges: ['🏆 Reliable Responder', '⚡ Fast Response', '✅ 50+ Completed Requests']
-    };
+    return null; // Force Auth / Sign-Up / Login when opening app
   });
+
+  const setUser = (userData) => {
+    setUserState(userData);
+    if (userData) {
+      localStorage.setItem('crisis_user', JSON.stringify(userData));
+      if (userData.role) setActiveRole(userData.role);
+    } else {
+      localStorage.removeItem('crisis_user');
+    }
+  };
+
+  const logoutUser = () => {
+    setUser(null);
+    localStorage.removeItem('crisis_token');
+  };
 
   // Calculate AI Priority Score
   const calculateAiScore = (category, urgency, description) => {
@@ -817,6 +823,7 @@ export const CrisisProvider = ({ children }) => {
       exportRequestsCsv,
       user,
       setUser,
+      logoutUser,
       isSimulatingDemo,
       runDemoFlow
     }}>

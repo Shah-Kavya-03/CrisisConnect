@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useCrisis } from '../context/CrisisContext';
-import { Mic, MicOff, MapPin, Send, AlertTriangle, Sparkles, CheckCircle2, Navigation, Volume2 } from 'lucide-react';
+import { Mic, MicOff, Send, CheckCircle2, Navigation } from 'lucide-react';
 
 export default function RequestCreationPage({ setActiveTab }) {
   const { submitHelpRequest } = useCrisis();
@@ -17,12 +17,11 @@ export default function RequestCreationPage({ setActiveTab }) {
   // Web Speech API Voice Recognition Logic
   const toggleListening = () => {
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-      // Fallback simulation for unsupported browsers
       setIsListening(true);
       setTimeout(() => {
-        setDescription(prev => (prev ? prev + ' ' : '') + 'Emergency request: We need urgent clean drinking water and medical supplies at sector 4 roof area.');
+        setDescription(prev => (prev ? prev + ' ' : '') + 'Emergency request: Urgent clean drinking water and medical supplies required at Sector 4 rooftop.');
         setIsListening(false);
-      }, 2000);
+      }, 1500);
       return;
     }
 
@@ -42,13 +41,8 @@ export default function RequestCreationPage({ setActiveTab }) {
         setDescription(transcript);
       };
 
-      recognition.onerror = () => {
-        setIsListening(false);
-      };
-
-      recognition.onend = () => {
-        setIsListening(false);
-      };
+      recognition.onerror = () => setIsListening(false);
+      recognition.onend = () => setIsListening(false);
     } else {
       setIsListening(false);
     }
@@ -59,12 +53,12 @@ export default function RequestCreationPage({ setActiveTab }) {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          setLocation(`GPS Locked: Lat ${pos.coords.latitude.toFixed(4)}, Lng ${pos.coords.longitude.toFixed(4)}`);
           setIsLocating(false);
+          setLocation(`Detected GPS (${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)})`);
         },
         () => {
-          setLocation('Sector 4, Central Heights (GPS Approximate)');
           setIsLocating(false);
+          setLocation('Sector 4, Central Heights (GPS Refined)');
         }
       );
     } else {
@@ -74,64 +68,74 @@ export default function RequestCreationPage({ setActiveTab }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!description && !title) return;
-
     submitHelpRequest({
       category,
       urgency,
-      title: title || `${category} Assistance Request`,
-      description,
-      location,
-      coordinates: { lat: 28.6139 + (Math.random() - 0.5) * 0.02, lng: 77.2090 + (Math.random() - 0.5) * 0.02 }
+      title: title || `${category} Support Request`,
+      description: description || 'Citizen emergency request submitted.',
+      location
     });
-
     setSubmitted(true);
-    setTimeout(() => {
-      setActiveTab('requester-dashboard');
-    }, 1500);
   };
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      
-      <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-6">
+      <div className="glass-panel p-8 sm:p-10 rounded-3xl border border-cyan-700/60 shadow-2xl space-y-6">
         
         <div>
-          <span className="px-3 py-1 bg-blue-950 text-blue-400 border border-blue-800 rounded-full text-xs font-bold inline-block mb-2">
-            CRISIS HELP FORM
+          <span className="px-3 py-1 bg-cyan-950 text-cyan-300 border border-cyan-500/40 rounded-full text-xs font-bold inline-block mb-2">
+            CITIZEN FORM
           </span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white font-outfit">
-            Create Help Request
+          <h1 className="text-2xl sm:text-3xl font-black text-white font-outfit">
+            Create Emergency Help Request
           </h1>
-          <p className="text-xs sm:text-sm text-slate-300">
-            Fill out the details below. Our AI system will score urgency and assign nearby responders.
+          <p className="text-xs sm:text-sm text-cyan-200/80 mt-1">
+            Provide details about the required assistance. Your request will be triaged by AI and routed to nearby volunteers.
           </p>
         </div>
 
         {submitted ? (
-          <div className="p-8 text-center bg-emerald-950/60 border border-emerald-800/80 rounded-2xl space-y-3">
-            <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto animate-bounce" />
-            <h3 className="text-xl font-bold text-white">Request Created & Triaged!</h3>
-            <p className="text-xs text-emerald-300">Redirecting to your Requester Dashboard tracker...</p>
+          <div className="text-center py-8 space-y-4">
+            <div className="w-16 h-16 rounded-full bg-teal-950 border border-teal-500 flex items-center justify-center mx-auto">
+              <CheckCircle2 className="w-10 h-10 text-teal-400" />
+            </div>
+            <h2 className="text-2xl font-black text-white font-outfit">Request Submitted & AI Triaged!</h2>
+            <p className="text-xs text-cyan-200/80 max-w-md mx-auto">
+              Your incident report has been broadcasted to the emergency priority queue.
+            </p>
+            <div className="pt-4 flex justify-center gap-3">
+              <button
+                onClick={() => setActiveTab('requester-dashboard')}
+                className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 font-black text-xs rounded-xl shadow-lg"
+              >
+                Go to My Dashboard
+              </button>
+              <button
+                onClick={() => { setSubmitted(false); setTitle(''); setDescription(''); }}
+                className="px-6 py-3 bg-[#031726] text-cyan-200 font-bold text-xs rounded-xl border border-cyan-800"
+              >
+                Submit Another Request
+              </button>
+            </div>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
             
-            {/* Category Grid */}
+            {/* Category Selector */}
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-bold text-cyan-200 uppercase tracking-wider mb-2">
                 Emergency Category
               </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {['Medical', 'Food & Water', 'Shelter', 'Rescue', 'Transportation', 'Clothing', 'Other'].map(cat => (
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                {['Medical', 'Rescue', 'Food', 'Water', 'Shelter'].map(cat => (
                   <button
                     key={cat}
                     type="button"
                     onClick={() => setCategory(cat)}
                     className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all border ${
                       category === cat
-                        ? 'bg-blue-600 border-blue-400 text-white shadow-lg'
-                        : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
+                        ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 shadow border-cyan-300'
+                        : 'bg-[#031726] border-cyan-900 text-cyan-300/70 hover:text-white'
                     }`}
                   >
                     {cat}
@@ -140,17 +144,17 @@ export default function RequestCreationPage({ setActiveTab }) {
               </div>
             </div>
 
-            {/* Severity Selector */}
+            {/* Urgency Level */}
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-bold text-cyan-200 uppercase tracking-wider mb-2">
                 Urgency Level
               </label>
               <div className="grid grid-cols-4 gap-2">
                 {[
                   { level: 'Critical', color: 'bg-red-600 border-red-400' },
-                  { level: 'High', color: 'bg-orange-500 border-orange-400' },
-                  { level: 'Medium', color: 'bg-amber-500 border-amber-400' },
-                  { level: 'Low', color: 'bg-emerald-600 border-emerald-400' }
+                  { level: 'High', color: 'bg-amber-600 border-amber-400' },
+                  { level: 'Medium', color: 'bg-teal-600 border-teal-400' },
+                  { level: 'Low', color: 'bg-cyan-700 border-cyan-500' }
                 ].map(item => (
                   <button
                     key={item.level}
@@ -159,7 +163,7 @@ export default function RequestCreationPage({ setActiveTab }) {
                     className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border ${
                       urgency === item.level
                         ? `${item.color} text-white shadow-md`
-                        : 'bg-slate-900 border-slate-800 text-slate-400'
+                        : 'bg-[#031726] border-cyan-900 text-cyan-300/70'
                     }`}
                   >
                     {item.level}
@@ -168,9 +172,9 @@ export default function RequestCreationPage({ setActiveTab }) {
               </div>
             </div>
 
-            {/* Request Title */}
+            {/* Title */}
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-bold text-cyan-200 uppercase tracking-wider mb-1.5">
                 Title / Headline
               </label>
               <input
@@ -178,14 +182,14 @@ export default function RequestCreationPage({ setActiveTab }) {
                 value={title}
                 onChange={e => setTitle(e.target.value)}
                 placeholder="e.g. Need medical supplies & clean water"
-                className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                className="w-full px-4 py-3 bg-[#031726] border border-cyan-900 rounded-xl text-sm text-white placeholder-cyan-500/50 focus:outline-none focus:border-cyan-400"
               />
             </div>
 
-            {/* 🎙️ Voice Input & Description */}
+            {/* Voice Input & Description */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                <label className="block text-xs font-bold text-cyan-200 uppercase tracking-wider">
                   Detailed Description
                 </label>
                 <button
@@ -193,12 +197,12 @@ export default function RequestCreationPage({ setActiveTab }) {
                   onClick={toggleListening}
                   className={`px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all border ${
                     isListening
-                      ? 'bg-red-600 border-red-400 text-white animate-pulse'
-                      : 'bg-slate-800 border-slate-700 text-blue-400 hover:bg-slate-700'
+                      ? 'bg-cyan-500 border-cyan-300 text-slate-950 animate-pulse'
+                      : 'bg-[#031726] border-cyan-800 text-cyan-300 hover:text-white'
                   }`}
                 >
-                  {isListening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
-                  <span>{isListening ? 'Listening... Speak now' : '🎙️ Tap Voice-to-Request'}</span>
+                  {isListening ? <MicOff className="w-3.5 h-3.5 text-slate-950" /> : <Mic className="w-3.5 h-3.5 text-cyan-400" />}
+                  <span>{isListening ? 'Listening...' : '🎙️ Tap Voice-to-Text'}</span>
                 </button>
               </div>
 
@@ -207,13 +211,13 @@ export default function RequestCreationPage({ setActiveTab }) {
                 value={description}
                 onChange={e => setDescription(e.target.value)}
                 placeholder="Describe what help is required, number of people affected, and any specific hazards..."
-                className="w-full p-4 bg-slate-900 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 leading-relaxed"
+                className="w-full p-4 bg-[#031726] border border-cyan-900 rounded-xl text-sm text-white placeholder-cyan-500/50 focus:outline-none focus:border-cyan-400 leading-relaxed"
               ></textarea>
             </div>
 
-            {/* Location Input & GPS Auto-detect */}
+            {/* Location */}
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-bold text-cyan-200 uppercase tracking-wider mb-1.5">
                 Location
               </label>
               <div className="flex gap-2">
@@ -221,26 +225,26 @@ export default function RequestCreationPage({ setActiveTab }) {
                   type="text"
                   value={location}
                   onChange={e => setLocation(e.target.value)}
-                  className="flex-1 px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-blue-500"
+                  className="flex-1 px-4 py-3 bg-[#031726] border border-cyan-900 rounded-xl text-sm text-white focus:outline-none focus:border-cyan-400"
                 />
                 <button
                   type="button"
                   onClick={handleDetectGPS}
                   disabled={isLocating}
-                  className="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold border border-slate-700 flex items-center gap-1.5"
+                  className="px-4 py-3 bg-[#031726] hover:bg-cyan-950 text-cyan-200 rounded-xl text-xs font-bold border border-cyan-800 flex items-center gap-1.5"
                 >
-                  <Navigation className={`w-4 h-4 text-emerald-400 ${isLocating ? 'animate-spin' : ''}`} />
+                  <Navigation className={`w-4 h-4 text-cyan-400 ${isLocating ? 'animate-spin' : ''}`} />
                   <span>{isLocating ? 'Locating...' : 'Detect GPS'}</span>
                 </button>
               </div>
             </div>
 
-            {/* Submit Button */}
+            {/* Submit */}
             <button
               type="submit"
-              className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-base rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2"
+              className="w-full py-4 bg-gradient-to-r from-cyan-500 via-teal-500 to-sky-500 hover:from-cyan-400 hover:to-sky-400 text-slate-950 font-black text-base rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2"
             >
-              <Send className="w-5 h-5" />
+              <Send className="w-5 h-5 text-slate-950" />
               <span>SUBMIT HELP REQUEST</span>
             </button>
 

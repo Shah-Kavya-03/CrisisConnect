@@ -31,6 +31,7 @@ export function useGeolocation(options = {}) {
         });
       },
       (error) => {
+        // Fallback default coordinates if GPS permission denied or in sandboxed browser
         setLocation(prev => ({
           ...prev,
           loading: false,

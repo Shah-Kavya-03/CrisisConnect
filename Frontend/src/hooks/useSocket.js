@@ -20,6 +20,7 @@ export function useSocket(eventHandlers = {}, role = 'Requester') {
         socket.emit('join:role', role);
       });
 
+      // Bind dynamic event handlers
       Object.entries(eventHandlers).forEach(([event, handler]) => {
         if (typeof handler === 'function') {
           socket.on(event, handler);
@@ -29,7 +30,9 @@ export function useSocket(eventHandlers = {}, role = 'Requester') {
       return () => {
         socket.disconnect();
       };
-    } catch (err) {}
+    } catch (err) {
+      // Fallback cleanly
+    }
   }, [role]);
 
   const emit = (event, data) => {

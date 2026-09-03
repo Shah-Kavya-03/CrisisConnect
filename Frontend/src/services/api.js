@@ -10,6 +10,7 @@ const api = axios.create({
   }
 });
 
+// Request interceptor to attach JWT Token from localStorage
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('crisis_token');
@@ -21,10 +22,13 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Response interceptor
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Graceful error logging
     if (error.response && error.response.status === 401) {
+      // Token expired or invalid
       localStorage.removeItem('crisis_token');
     }
     return Promise.reject(error);

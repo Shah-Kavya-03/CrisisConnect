@@ -3,6 +3,9 @@ import axios from 'axios';
 const AI_DIRECT_URL = import.meta.env.VITE_PYTHON_AI_URL || 'http://localhost:8000/api/ai';
 
 export const aiService = {
+  /**
+   * Check duplicate request via AI microservice
+   */
   async checkDuplicate({ title, description, category, coordinates, existingRequests }) {
     try {
       const response = await axios.post(`${AI_DIRECT_URL}/check-duplicate`, {
@@ -14,10 +17,14 @@ export const aiService = {
       }, { timeout: 3500 });
       return response.data;
     } catch (error) {
+      // Return heuristic fallback calculation
       return this.heuristicDuplicateCheck({ title, description, category, existingRequests });
     }
   },
 
+  /**
+   * Score emergency urgency via AI microservice
+   */
   async scoreUrgency({ title, description, category, declaredUrgency, coordinates, peopleCount = 1 }) {
     try {
       const response = await axios.post(`${AI_DIRECT_URL}/score-urgency`, {
