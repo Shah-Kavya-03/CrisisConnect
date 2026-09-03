@@ -2,6 +2,7 @@ import User from '../models/User.js';
 import Volunteer from '../models/Volunteer.js';
 import Requester from '../models/Requester.js';
 import Organization from '../models/Organization.js';
+import Admin from '../models/Admin.js';
 import { generateToken } from '../utils/generateToken.js';
 
 // @desc    Register a new user (Requester, Volunteer, NGO, Admin)
@@ -23,8 +24,8 @@ export const register = async (req, res, next) => {
       phone,
       password,
       role: role || 'Requester',
-      trustScore: role === 'Volunteer' ? 90 : 85,
-      badges: role === 'Volunteer' ? ['⚡ Registered Responder'] : ['🔰 Verified Requester']
+      trustScore: role === 'Volunteer' ? 90 : role === 'Admin' ? 100 : 85,
+      badges: role === 'Volunteer' ? ['⚡ Registered Responder'] : role === 'Admin' ? ['🛡️ Command Dispatcher'] : ['🔰 Verified Requester']
     });
 
     // Create role-specific document in dedicated collection
@@ -66,6 +67,15 @@ export const register = async (req, res, next) => {
         user.organizationId = org._id;
         await user.save();
       }
+    } else if (role === 'Admin') {
+      await Admin.create({
+        userId: user._id,
+        department: req.body.department || 'State Emergency Command Center',
+        accessLevel: req.body.accessLevel || 'Dispatcher',
+        badgeNumber: req.body.badgeNumber || `CMD-${Math.floor(100 + Math.random() * 900)}`,
+        assignedJurisdiction: req.body.assignedJurisdiction || 'Delhi NCR',
+        permissions: ['MANAGE_REQUESTS', 'MODERATE_DUPLICATES', 'DISPATCH_VOLUNTEERS', 'EXPORT_REPORTS']
+      }).catch(() => {});
     }
 
     const token = generateToken(user._id, user.role);

@@ -5,6 +5,7 @@ import Request from '../models/Request.js';
 import Volunteer from '../models/Volunteer.js';
 import Requester from '../models/Requester.js';
 import Organization from '../models/Organization.js';
+import Admin from '../models/Admin.js';
 import { logger } from './logger.js';
 
 dotenv.config();
@@ -101,6 +102,7 @@ const seedDB = async () => {
     await Volunteer.deleteMany({});
     await Requester.deleteMany({});
     await Organization.deleteMany({});
+    await Admin.deleteMany({});
     await Request.deleteMany({});
 
     // 1. Seed Organizations & Shelters
@@ -248,7 +250,20 @@ const seedDB = async () => {
     });
     logger.success('Requester profiles seeded successfully');
 
-    // 5. Seed Requests with references
+    // 5. Seed Admin Profile
+    await Admin.create({
+      userId: adminUser._id,
+      department: 'State Emergency Command Center',
+      accessLevel: 'SuperAdmin',
+      badgeNumber: 'CMD-001',
+      assignedJurisdiction: 'National Capital Region',
+      permissions: ['ALL_PERMISSIONS', 'MANAGE_REQUESTS', 'MODERATE_DUPLICATES', 'DISPATCH_VOLUNTEERS', 'EXPORT_REPORTS', 'MANAGE_ORGANIZATIONS'],
+      dutyStatus: 'On Duty',
+      actionsPerformedCount: 154
+    });
+    logger.success('Admin profiles seeded successfully');
+
+    // 6. Seed Requests with references
     const requestsToSeed = SEED_REQUESTS.map((req, index) => {
       const copy = { ...req };
       if (index === 0) {
