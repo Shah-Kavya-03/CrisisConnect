@@ -95,17 +95,21 @@ const seedDB = async () => {
     await mongoose.connect(mongoUri);
     logger.info('Connected to MongoDB for seeding...');
 
-    await Request.deleteMany({});
-    await Request.insertMany(SEED_REQUESTS);
-    logger.success('Requests seeded successfully');
-
+    // Clear existing collections
+    await User.deleteMany({});
+    await Volunteer.deleteMany({});
     await Organization.deleteMany({});
-    await Organization.create({
+    await Request.deleteMany({});
+
+    // 1. Seed Organizations & Shelters
+    const org = await Organization.create({
       name: 'Red Cross Relief Team B',
       registrationNumber: 'NGO-DEL-8921',
       type: 'Registered NGO',
       contactEmail: 'contact@redcross-relief.org',
       contactPhone: '+91 90000 11111',
+      headquartersAddress: 'District Emergency Operations Center, Sector 12',
+      jurisdictionCity: 'Delhi NCR',
       resourcesInventory: {
         oxygenCylinders: 40,
         foodKits: 1200,
@@ -113,10 +117,131 @@ const seedDB = async () => {
         temporaryShelterBeds: 150,
         rescueBoats: 6,
         medicalFirstAidKits: 300
-      }
+      },
+      isVerified: true,
+      activeVolunteersCount: 18
     });
-    logger.success('Organizations seeded successfully');
 
+    const shelterOrg = await Organization.create({
+      name: 'Central Metro Community Relief Shelter',
+      registrationNumber: 'GOV-SHELTER-4401',
+      type: 'Government Agency',
+      contactEmail: 'shelter.metro@crisis.gov',
+      contactPhone: '+91 98888 22334',
+      headquartersAddress: 'Central Stadium Complex, Metro City',
+      jurisdictionCity: 'Delhi NCR',
+      resourcesInventory: {
+        oxygenCylinders: 20,
+        foodKits: 800,
+        drinkingWaterLiters: 4000,
+        temporaryShelterBeds: 250,
+        rescueBoats: 2,
+        medicalFirstAidKits: 100
+      },
+      isVerified: true,
+      activeVolunteersCount: 25
+    });
+    logger.success('Organizations & Shelters seeded successfully');
+
+    // 2. Seed Users
+    const requesterUser = await User.create({
+      name: 'Ananya Sharma',
+      email: 'ananya@crisis.org',
+      phone: '+91 98765 43210',
+      password: 'password123',
+      role: 'Requester',
+      location: {
+        address: 'Central Heights, Sector 4, Metro Area',
+        coordinates: { lat: 28.6139, lng: 77.2090 }
+      },
+      trustScore: 88,
+      badges: ['🔰 Verified Requester'],
+      isVerified: true
+    });
+
+    const volunteerUser = await User.create({
+      name: 'Dr. Rahul Verma',
+      email: 'rahul@relief.org',
+      phone: '+91 91234 56789',
+      password: 'password123',
+      role: 'Volunteer',
+      location: {
+        address: 'Apollo Clinic, Block B, Metro Area',
+        coordinates: { lat: 28.6150, lng: 77.2100 }
+      },
+      trustScore: 98,
+      completedAssignments: 48,
+      abandonedAssignments: 0,
+      avgResponseMinutes: 11,
+      badges: ['🏆 Reliable Responder', '⚡ Rapid Action', '🩺 Medical Specialist'],
+      isVerified: true
+    });
+
+    const adminUser = await User.create({
+      name: 'Operations Commander',
+      email: 'admin@crisis.gov',
+      phone: '+91 98111 22233',
+      password: 'password123',
+      role: 'Admin',
+      location: {
+        address: 'State Emergency Command Center',
+        coordinates: { lat: 28.6200, lng: 77.2150 }
+      },
+      trustScore: 100,
+      badges: ['🛡️ Command Dispatcher'],
+      isVerified: true
+    });
+
+    const ngoUser = await User.create({
+      name: 'Red Cross Admin',
+      email: 'ngo@redcross.org',
+      phone: '+91 90000 11111',
+      password: 'password123',
+      role: 'NGO',
+      organizationId: org._id,
+      location: {
+        address: 'Red Cross Relief Headquarters',
+        coordinates: { lat: 28.6100, lng: 77.2050 }
+      },
+      trustScore: 99,
+      badges: ['🤝 NGO Partner'],
+      isVerified: true
+    });
+    logger.success('Users (Requester, Volunteer, Admin, NGO) seeded successfully');
+
+    // 3. Seed Volunteer Profile
+    await Volunteer.create({
+      userId: volunteerUser._id,
+      skills: ['First Aid / BLS', 'Emergency Response', 'Medical Triage', 'Ambulance Driving'],
+      vehicleType: 'Ambulance / Medical Van',
+      isAvailable: true,
+      serviceRadiusKm: 25,
+      currentLocation: {
+        type: 'Point',
+        coordinates: [77.2100, 28.6150]
+      },
+      verificationStatus: 'Verified',
+      idCardNumber: 'MED-VOL-98214',
+      totalHoursVolunteered: 142
+    });
+    logger.success('Volunteer profiles seeded successfully');
+
+    // 4. Seed Requests with references
+    const requestsToSeed = SEED_REQUESTS.map((req, index) => {
+      const copy = { ...req };
+      if (index === 0) {
+        copy.requesterId = requesterUser._id;
+        copy.assignedTo.userId = volunteerUser._id;
+      } else if (index === 1) {
+        copy.requesterId = requesterUser._id;
+      }
+      return copy;
+    });
+
+    await Request.insertMany(requestsToSeed);
+    logger.success('Requests seeded successfully');
+
+    logger.success('CrisisConnect MongoDB database seeded successfully!');
     process.exit(0);
   } catch (err) {
     logger.error(`Seeding failed: ${err.message}`);

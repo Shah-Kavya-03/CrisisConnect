@@ -27,10 +27,10 @@ if (process.env.NODE_ENV !== 'test') {
 // Global API rate limiting
 app.use('/api', apiLimiter);
 
-// Health check endpoint
-app.get('/health', (req, res) => {
+// Health check endpoint (available at both /health and /api/health)
+app.get(['/health', '/api/health'], (req, res) => {
   res.json({
-    status: 'healthy',
+    status: 'ok',
     service: 'CrisisConnect Node.js Server',
     timestamp: new Date().toISOString()
   });
