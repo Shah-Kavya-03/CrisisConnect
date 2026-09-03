@@ -23,8 +23,20 @@ await connectDB();
 const cronInterval = parseInt(process.env.EXPIRY_CRON_INTERVAL_MS || '60000', 10);
 startExpiryCronJob(cronInterval);
 
+httpServer.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    logger.error(`Port ${PORT} is already in use by another process.`);
+    logger.info(`To free the port on Windows PowerShell, run:`);
+    logger.info(`  Get-Process -Id (Get-NetTCPConnection -LocalPort ${PORT}).OwningProcess | Stop-Process -Force`);
+  } else {
+    logger.error(`Server startup error: ${err.message}`);
+  }
+  process.exit(1);
+});
+
 httpServer.listen(PORT, () => {
   logger.success(`CrisisConnect API Server running on port ${PORT} [${process.env.NODE_ENV || 'development'}]`);
   logger.info(`REST API: http://localhost:${PORT}/api`);
   logger.info(`WebSocket: ws://localhost:${PORT}`);
 });
+
