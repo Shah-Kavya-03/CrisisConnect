@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, CircleMarker, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { AlertTriangle, MapPin, Phone, User, ShieldAlert, CheckCircle } from 'lucide-react';
+import { AlertTriangle, MapPin, Phone, User, ShieldAlert, CheckCircle, Navigation } from 'lucide-react';
+import { useCrisis } from '../context/CrisisContext';
 
 // Custom SVG Markers based on severity
 const createCustomIcon = (severity, category) => {
@@ -28,6 +29,30 @@ const createCustomIcon = (severity, category) => {
   });
 };
 
+const createVolunteerIcon = (vehicleType) => {
+  let emoji = '🚙';
+  if ((vehicleType || '').toLowerCase().includes('boat')) emoji = '🚤';
+  else if ((vehicleType || '').toLowerCase().includes('ambulance') || (vehicleType || '').toLowerCase().includes('medical')) emoji = '🚑';
+  else if ((vehicleType || '').toLowerCase().includes('truck')) emoji = '🚛';
+
+  const svgHtml = `
+    <div style="position: relative; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;">
+      <div style="position: absolute; width: 34px; height: 34px; border-radius: 50%; background: #06B6D4; opacity: 0.35; animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
+      <div style="width: 28px; height: 28px; border-radius: 50%; background: #0891B2; border: 2.5px solid #67E8F9; box-shadow: 0 4px 10px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: white; font-size: 13px;">
+        ${emoji}
+      </div>
+    </div>
+  `;
+
+  return L.divIcon({
+    html: svgHtml,
+    className: 'custom-volunteer-marker',
+    iconSize: [34, 34],
+    iconAnchor: [17, 17],
+    popupAnchor: [0, -17]
+  });
+};
+
 // Component to dynamically re-center map when center prop changes
 function MapRecenter({ center }) {
   const map = useMap();
@@ -42,6 +67,7 @@ function MapRecenter({ center }) {
 export default function CrisisMap({ requests = [], selectedRequestId, onSelectRequest, categoryFilter = 'All' }) {
   const defaultCenter = [28.6139, 77.2090];
   const [activeCenter, setActiveCenter] = useState(defaultCenter);
+  const { activeResponderLocations } = useCrisis();
 
   const filteredRequests = requests.filter(r => {
     if (categoryFilter === 'All') return true;
@@ -137,6 +163,40 @@ export default function CrisisMap({ requests = [], selectedRequestId, onSelectRe
                     >
                       View Full Details
                     </button>
+                  </div>
+                </Popup>
+              </Marker>
+            </React.Fragment>
+          );
+        })}
+
+        {/* Real-Time Live Moving Responders & Dispatch Vectors */}
+        {Object.values(activeResponderLocations || {}).map((responder, idx) => {
+          if (!responder.coordinates || !responder.coordinates.lat || !responder.coordinates.lng) return null;
+          const responderPos = [responder.coordinates.lat, responder.coordinates.lng];
+          
+          // Find target request coordinates to draw dispatch vector
+          const targetReq = responder.targetRequestId ? requests.find(r => r.id === responder.targetRequestId) : null;
+          const targetPos = targetReq?.coordinates ? [targetReq.coordinates.lat, targetReq.coordinates.lng] : null;
+
+          return (
+            <React.Fragment key={responder.volunteerId || idx}>
+              {targetPos && (
+                <Polyline
+                  positions={[responderPos, targetPos]}
+                  pathOptions={{ color: '#06B6D4', weight: 2.5, dashArray: '6, 8', opacity: 0.85 }}
+                />
+              )}
+              <Marker position={responderPos} icon={createVolunteerIcon(responder.vehicleType)}>
+                <Popup className="custom-popup">
+                  <div className="p-2.5 max-w-xs text-slate-900 font-sans text-xs">
+                    <div className="font-bold text-cyan-700 flex items-center gap-1 mb-1">
+                      <span>⚡ Active Responder: {responder.name}</span>
+                    </div>
+                    <div className="text-slate-600">Vehicle: <strong>{responder.vehicleType || '4x4 Patrol'}</strong></div>
+                    {responder.targetRequestId && (
+                      <div className="text-teal-600 font-semibold mt-1">Dispatched to #{responder.targetRequestId}</div>
+                    )}
                   </div>
                 </Popup>
               </Marker>

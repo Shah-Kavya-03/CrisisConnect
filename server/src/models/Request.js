@@ -6,6 +6,14 @@ const TimelineEventSchema = new mongoose.Schema({
   note: { type: String, required: true }
 }, { _id: false });
 
+const CommentSchema = new mongoose.Schema({
+  id: { type: String, default: () => `comm-${Date.now()}` },
+  author: { type: String, required: true },
+  text: { type: String, required: true },
+  timestamp: { type: String, default: () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
+  createdAt: { type: Date, default: Date.now }
+}, { _id: false });
+
 const RequestSchema = new mongoose.Schema({
   customId: {
     type: String,
@@ -74,7 +82,7 @@ const RequestSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Awaiting Help', 'Assigned', 'En Route', 'In Progress', 'Resolved', 'Expired', 'Flagged Duplicate', 'Cancelled'],
+    enum: ['Awaiting Help', 'Assigned', 'En Route', 'In Progress', 'Resolved', 'Expired', 'Flagged Duplicate', 'Cancelled', 'Merged', 'Rejected (Spam)'],
     default: 'Awaiting Help'
   },
   assignedTo: {
@@ -109,6 +117,7 @@ const RequestSchema = new mongoose.Schema({
     type: String
   }],
   timeline: [TimelineEventSchema],
+  comments: [CommentSchema],
   peopleCount: {
     type: Number,
     default: 1

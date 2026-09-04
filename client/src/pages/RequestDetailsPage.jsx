@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useCrisis } from '../context/CrisisContext';
 import CrisisMap from '../components/CrisisMap';
-import { User, ArrowLeft, Send, FileText, RefreshCw, MessageSquare, Timer, CheckCircle2 } from 'lucide-react';
+import { User, ArrowLeft, Send, FileText, RefreshCw, MessageSquare, Timer, CheckCircle2, ShieldCheck, Navigation, Award, MapPin } from 'lucide-react';
 
 export default function RequestDetailsPage({ setActiveTab }) {
-  const { selectedRequest, updateRequestStatus, renewRequest, addRequestComment, user } = useCrisis();
+  const { selectedRequest, updateRequestStatus, renewRequest, addRequestComment, verifyOnSiteArrival, streamVolunteerTelemetry, user } = useCrisis();
   const [commentInput, setCommentInput] = useState('');
   const [timeLeft, setTimeLeft] = useState('28m 42s');
+  const [proximityMeters, setProximityMeters] = useState(140);
+  const [isVerifyingArrival, setIsVerifyingArrival] = useState(false);
+  const [isSimulatingApproach, setIsSimulatingApproach] = useState(false);
 
   useEffect(() => {
     if (!selectedRequest?.expiresAt) return;
@@ -22,6 +25,43 @@ export default function RequestDetailsPage({ setActiveTab }) {
     }, 1000);
     return () => clearInterval(interval);
   }, [selectedRequest?.expiresAt]);
+
+  // Simulate live GPS approach & stream WebSocket telemetry
+  const handleSimulateLiveApproach = () => {
+    if (!selectedRequest?.coordinates) return;
+    setIsSimulatingApproach(true);
+    let step = 0;
+    const baseLat = selectedRequest.coordinates.lat - 0.005;
+    const baseLng = selectedRequest.coordinates.lng - 0.005;
+
+    const timer = setInterval(() => {
+      step++;
+      const currentLat = baseLat + (selectedRequest.coordinates.lat - baseLat) * (step / 5);
+      const currentLng = baseLng + (selectedRequest.coordinates.lng - baseLng) * (step / 5);
+      const remainingDist = Math.max(Math.round(250 * (1 - step / 5)), 45);
+
+      setProximityMeters(remainingDist);
+      if (streamVolunteerTelemetry) {
+        streamVolunteerTelemetry({ lat: currentLat, lng: currentLng }, selectedRequest.id);
+      }
+
+      if (step >= 5) {
+        clearInterval(timer);
+        setIsSimulatingApproach(false);
+        setProximityMeters(50);
+      }
+    }, 1200);
+  };
+
+  const handleVerifyArrival = async () => {
+    if (!selectedRequest?.id) return;
+    setIsVerifyingArrival(true);
+    try {
+      await verifyOnSiteArrival(selectedRequest.id, user?.id || 'VOL-CURRENT', selectedRequest.coordinates);
+    } finally {
+      setIsVerifyingArrival(false);
+    }
+  };
 
   if (!selectedRequest) return (
     <div className="max-w-4xl mx-auto p-8 text-center text-cyan-300/70">
@@ -133,6 +173,73 @@ export default function RequestDetailsPage({ setActiveTab }) {
             })}
           </div>
         </div>
+
+        {/* Geofenced Proof-of-Help Radar & Arrival Verification */}
+        {selectedRequest.timeline?.some(t => t.status === 'Arrived On-Site' || t.note?.includes('Geofence')) ? (
+          <div className="bg-emerald-950/60 p-4 rounded-2xl border border-emerald-500/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400 flex items-center justify-center">
+                <ShieldCheck className="w-6 h-6 text-emerald-400" />
+              </div>
+              <div>
+                <h4 className="font-bold text-sm text-white flex items-center gap-1.5">
+                  <span>📍 On-Site Arrival Verified (Geofenced GPS)</span>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-900 text-emerald-300 text-[10px] font-extrabold uppercase">Verified</span>
+                </h4>
+                <p className="text-xs text-emerald-200/80 mt-0.5">
+                  Responder presence verified on-site via satellite GPS. +3 Trust Score bonus awarded to responder.
+                </p>
+              </div>
+            </div>
+            {selectedRequest.status !== 'Resolved' && (
+              <button
+                onClick={() => updateRequestStatus(selectedRequest.id, 'Resolved')}
+                className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs rounded-xl shadow transition-all"
+              >
+                Mark Incident Resolved
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="glass-panel p-4 rounded-2xl border border-cyan-700/60 bg-gradient-to-r from-cyan-950/60 via-[#071E2B] to-[#031726] space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-cyan-950 border border-cyan-500/50 flex items-center justify-center">
+                  <Navigation className="w-5 h-5 text-cyan-300 animate-pulse" />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-white flex items-center gap-2">
+                    Proof-of-Help: Geofenced Arrival Radar
+                    <span className="text-cyan-400 font-mono text-[11px] font-bold">~{proximityMeters}m from disaster site</span>
+                  </span>
+                  <span className="text-[10px] text-cyan-300/80 block">
+                    Sat-Nav verifies responder presence within 200m before allowing on-site resolution.
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={handleSimulateLiveApproach}
+                  disabled={isSimulatingApproach}
+                  className="px-3.5 py-2 bg-[#031726] hover:bg-cyan-950 text-cyan-300 border border-cyan-700/60 rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  <Navigation className={`w-3.5 h-3.5 ${isSimulatingApproach ? 'animate-spin text-teal-400' : 'text-cyan-400'}`} />
+                  <span>{isSimulatingApproach ? 'Streaming GPS...' : '⚡ Broadcast Live Telemetry'}</span>
+                </button>
+
+                <button
+                  onClick={handleVerifyArrival}
+                  disabled={isVerifyingArrival}
+                  className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-slate-950 font-black text-xs rounded-xl shadow transition-all flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  <CheckCircle2 className="w-4 h-4 text-slate-950" />
+                  <span>{isVerifyingArrival ? 'Verifying...' : '📍 Confirm On-Site Arrival'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Info & Map Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">

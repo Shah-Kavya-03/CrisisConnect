@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCrisis } from '../context/CrisisContext';
 import CrisisMap from '../components/CrisisMap';
+import api from '../services/api';
 import { Building2, Layers, Package, Truck, ShieldAlert, CheckCircle, Clock } from 'lucide-react';
 
 export default function NgoDashboard({ setActiveTab, setSelectedRequestId }) {
@@ -18,6 +19,22 @@ export default function NgoDashboard({ setActiveTab, setSelectedRequestId }) {
   });
 
   const [inventorySaved, setInventorySaved] = useState(false);
+
+  // Sync inventory with live backend organization inventory
+  useEffect(() => {
+    const fetchOrgInventory = async () => {
+      try {
+        const res = await api.get('/organizations');
+        if (res.data?.organizations && res.data.organizations.length > 0) {
+          const firstOrg = res.data.organizations[0];
+          if (firstOrg.resourcesInventory) {
+            setInventory(firstOrg.resourcesInventory);
+          }
+        }
+      } catch (e) {}
+    };
+    fetchOrgInventory();
+  }, []);
 
   const handleUpdateInventory = (key, delta) => {
     setInventory(prev => ({

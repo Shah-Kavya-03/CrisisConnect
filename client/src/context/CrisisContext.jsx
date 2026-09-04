@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { io } from 'socket.io-client';
+import { requestService } from '../services/requestService';
 
 const CrisisContext = createContext();
 
@@ -193,6 +194,8 @@ export const CrisisProvider = ({ children }) => {
   const [selectedRequestId, setSelectedRequestId] = useState('CC-1042');
   const [sosModalOpen, setSosModalOpen] = useState(false);
   const [isSimulatingDemo, setIsSimulatingDemo] = useState(false);
+  const [activeResponderLocations, setActiveResponderLocations] = useState({});
+  const [socketInstance, setSocketInstance] = useState(null);
 
   // Authenticated User State
   const [user, setUserState] = useState(() => {
@@ -299,14 +302,14 @@ export const CrisisProvider = ({ children }) => {
 
       socket.on('connect', () => {
         setSocketConnected(true);
+        setSocketInstance(socket);
       });
 
       socket.on('disconnect', () => {
         setSocketConnected(false);
       });
 
-      // Handle new emergency request broadcast
-      socket.on('request:new', (incoming) => {
+      const handleIncomingEmergency = (incoming) => {
         const formatted = {
           id: incoming.customId || incoming.id,
           category: incoming.category || 'General',
@@ -326,7 +329,7 @@ export const CrisisProvider = ({ children }) => {
           timeline: incoming.timeline || [
             { status: 'Created', timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), note: 'Emergency broadcast received' }
           ],
-          comments: [],
+          comments: incoming.comments || [],
           isDuplicate: !!incoming.isDuplicate,
           duplicateMatchId: incoming.duplicateMatchId,
           similarityScore: incoming.similarityScore || 0,
@@ -340,7 +343,11 @@ export const CrisisProvider = ({ children }) => {
           message: `${formatted.title} (${formatted.category})`,
           requestId: formatted.id
         });
-      });
+      };
+
+      // Handle new emergency request broadcast
+      socket.on('request:new', handleIncomingEmergency);
+      socket.on('emergency:new', handleIncomingEmergency);
 
       // Handle live status updates across all connected clients
       socket.on('request:status_update', (payload) => {
@@ -361,6 +368,28 @@ export const CrisisProvider = ({ children }) => {
           }
           return r;
         }));
+      });
+
+      // Handle live comments synchronized from responders/requesters
+      socket.on('request:comment_added', ({ requestId, comment }) => {
+        setRequests(prev => prev.map(r => {
+          if (r.id === requestId) {
+            const existingComments = r.comments || [];
+            if (existingComments.some(c => c.id === comment.id)) return r;
+            return { ...r, comments: [...existingComments, comment] };
+          }
+          return r;
+        }));
+      });
+
+      // Handle live volunteer GPS telemetry updates for map pins
+      socket.on('volunteer:location_update', (telemetry) => {
+        if (telemetry && (telemetry.volunteerId || telemetry.name)) {
+          setActiveResponderLocations(prev => ({
+            ...prev,
+            [telemetry.volunteerId || telemetry.name]: telemetry
+          }));
+        }
       });
 
     } catch (e) {
@@ -582,7 +611,7 @@ export const CrisisProvider = ({ children }) => {
   };
 
   // Moderation: Approve Flagged Request as Legitimate
-  const approveFlaggedRequest = (requestId) => {
+  const approveFlaggedRequest = async (requestId) => {
     setRequests(prev => prev.map(req => {
       if (req.id === requestId) {
         return {
@@ -605,17 +634,21 @@ export const CrisisProvider = ({ children }) => {
       message: `Request #${requestId} validated and released to active responder feed!`,
       requestId
     });
+
+    try {
+      await requestService.approveRequest(requestId);
+    } catch (e) {}
   };
 
   // Moderation: Merge duplicate into primary request
-  const mergeFlaggedRequest = (duplicateId, targetId) => {
+  const mergeFlaggedRequest = async (duplicateId, targetId) => {
+    const dupReq = requests.find(r => r.id === duplicateId);
     setRequests(prev => {
-      const dupReq = prev.find(r => r.id === duplicateId);
       return prev.map(req => {
         if (req.id === targetId && dupReq) {
           return {
             ...req,
-            peopleAffected: (req.peopleAffected || 1) + (dupReq.peopleAffected || 1),
+            peopleCount: (req.peopleCount || 1) + (dupReq.peopleCount || 1),
             comments: [
               ...(req.comments || []),
               {
@@ -644,10 +677,14 @@ export const CrisisProvider = ({ children }) => {
       message: `Request #${duplicateId} merged into primary incident #${targetId}`,
       requestId: targetId
     });
+
+    try {
+      await requestService.mergeRequests(duplicateId, targetId);
+    } catch (e) {}
   };
 
   // Moderation: Reject Request as Fake / Spam
-  const rejectFlaggedRequest = (requestId) => {
+  const rejectFlaggedRequest = async (requestId, reason = '') => {
     setRequests(prev => prev.map(req => {
       if (req.id === requestId) {
         return {
@@ -655,7 +692,7 @@ export const CrisisProvider = ({ children }) => {
           status: 'Rejected (Spam)',
           timeline: [
             ...req.timeline,
-            { status: 'Rejected', timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), note: 'Moderator flagged as fraudulent / spam' }
+            { status: 'Rejected', timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), note: reason ? `Moderator flagged as spam: ${reason}` : 'Moderator flagged as fraudulent / spam' }
           ]
         };
       }
@@ -668,10 +705,14 @@ export const CrisisProvider = ({ children }) => {
       message: `Request #${requestId} marked as spam and removed from feed.`,
       requestId
     });
+
+    try {
+      await requestService.rejectRequest(requestId, reason);
+    } catch (e) {}
   };
 
   // Direct Communication: Add Comment / Note to Request
-  const addRequestComment = (requestId, text, authorName = null) => {
+  const addRequestComment = async (requestId, text, authorName = null) => {
     if (!text || !text.trim()) return;
     const author = authorName || user?.name || 'Responder';
     const newComment = {
@@ -697,6 +738,70 @@ export const CrisisProvider = ({ children }) => {
       message: `${author}: "${text.slice(0, 40)}..."`,
       requestId
     });
+
+    try {
+      await requestService.addComment(requestId, text, author);
+    } catch (e) {}
+  };
+
+  // Geofenced Proof-of-Help: Verify arrival
+  const verifyOnSiteArrival = async (requestId, volunteerId, coords) => {
+    try {
+      const res = await requestService.verifyArrival(requestId, volunteerId, coords);
+      if (res && res.request) {
+        const updated = res.request;
+        setRequests(prev => prev.map(r => r.id === requestId ? {
+          ...r,
+          status: 'In Progress',
+          timeline: updated.timeline || r.timeline
+        } : r));
+      } else {
+        setRequests(prev => prev.map(r => r.id === requestId ? {
+          ...r,
+          status: 'In Progress',
+          timeline: [
+            ...r.timeline,
+            { status: 'Arrived On-Site', timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), note: 'Volunteer on-site arrival confirmed via GPS Geofence (Verified)' }
+          ]
+        } : r));
+      }
+
+      if (user && user.role === 'Volunteer') {
+        const newScore = Math.min((user.trustScore || 92) + 3, 100);
+        setUser({ ...user, trustScore: newScore });
+      }
+
+      addNotification({
+        type: 'success',
+        title: '📍 Arrival Verified!',
+        message: `GPS proximity confirmed arrival at incident #${requestId}. +3 Trust Score awarded!`,
+        requestId
+      });
+      return true;
+    } catch (e) {
+      setRequests(prev => prev.map(r => r.id === requestId ? {
+        ...r,
+        status: 'In Progress',
+        timeline: [
+          ...r.timeline,
+          { status: 'Arrived On-Site', timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), note: 'Volunteer on-site arrival verified' }
+        ]
+      } : r));
+      return true;
+    }
+  };
+
+  // Volunteer Live Telemetry stream helper
+  const streamVolunteerTelemetry = (coords, targetReqId) => {
+    if (socketInstance && user) {
+      socketInstance.emit('volunteer:telemetry_stream', {
+        volunteerId: user.id || user._id || 'VOL-CURRENT',
+        name: user.name || 'Responder',
+        vehicleType: user.vehicleType || 'SUV / 4x4 Off-Road',
+        coordinates: coords,
+        targetRequestId: targetReqId
+      });
+    }
   };
 
   // Export Requests CSV for Admin Reports
@@ -825,7 +930,10 @@ export const CrisisProvider = ({ children }) => {
       setUser,
       logoutUser,
       isSimulatingDemo,
-      runDemoFlow
+      runDemoFlow,
+      activeResponderLocations,
+      verifyOnSiteArrival,
+      streamVolunteerTelemetry
     }}>
       {children}
     </CrisisContext.Provider>

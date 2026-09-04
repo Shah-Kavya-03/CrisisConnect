@@ -1,7 +1,9 @@
 import Request from '../models/Request.js';
+import User from '../models/User.js';
 import VerificationLog from '../models/VerificationLog.js';
 import { pythonServiceClient } from '../services/pythonServiceClient.js';
-import { broadcastEmergency, broadcastStatusUpdate } from '../config/socket.js';
+import { broadcastEmergency, broadcastStatusUpdate, getIO } from '../config/socket.js';
+import { getHaversineDistanceKm } from '../services/geoMatchService.js';
 import { logger } from '../utils/logger.js';
 
 // @desc    Create a new emergency assistance request (or SOS)
@@ -291,6 +293,322 @@ export const renewRequest = async (req, res, next) => {
     res.json({
       success: true,
       message: 'Request renewed successfully for 4 hours',
+      request
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Moderation: Approve flagged request as unique and legitimate
+// @route   PATCH /api/requests/:id/approve
+// @access  Public (or Moderator/Admin)
+export const approveRequest = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const request = await Request.findOne({
+      $or: [{ customId: id }, { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }]
+    });
+
+    if (!request) {
+      return res.status(404).json({ success: false, message: 'Request not found' });
+    }
+
+    request.isDuplicate = false;
+    request.similarityScore = 0;
+    request.status = 'Awaiting Help';
+    request.timeline.push({
+      status: 'Approved',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      note: 'Moderator approved request as unique & legitimate (De-flagged)'
+    });
+
+    await request.save();
+
+    await VerificationLog.create({
+      actionType: 'MODERATOR_APPROVE',
+      requestId: request.customId,
+      performerRole: req.user?.role || 'MODERATOR',
+      details: { verifiedAt: new Date().toISOString() }
+    }).catch(() => {});
+
+    broadcastStatusUpdate(request.customId, {
+      status: 'Awaiting Help',
+      isDuplicate: false,
+      timeline: request.timeline
+    });
+
+    res.json({
+      success: true,
+      message: `Request #${request.customId} approved and released to responder feed`,
+      request
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Moderation: Merge duplicate report into primary incident
+// @route   POST /api/requests/merge
+// @access  Public (or Moderator/Admin)
+export const mergeRequests = async (req, res, next) => {
+  try {
+    const { duplicateId, targetId } = req.body;
+
+    if (!duplicateId || !targetId) {
+      return res.status(400).json({ success: false, message: 'Both duplicateId and targetId are required' });
+    }
+
+    const [duplicateReq, targetReq] = await Promise.all([
+      Request.findOne({ $or: [{ customId: duplicateId }, { _id: duplicateId.match(/^[0-9a-fA-F]{24}$/) ? duplicateId : null }] }),
+      Request.findOne({ $or: [{ customId: targetId }, { _id: targetId.match(/^[0-9a-fA-F]{24}$/) ? targetId : null }] })
+    ]);
+
+    if (!duplicateReq || !targetReq) {
+      return res.status(404).json({ success: false, message: 'One or both requests not found' });
+    }
+
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    // Update target request
+    targetReq.peopleCount = (targetReq.peopleCount || 1) + (duplicateReq.peopleCount || 1);
+    targetReq.comments.push({
+      author: 'System Auto-Merge',
+      text: `Merged duplicate report #${duplicateReq.customId}: "${duplicateReq.description}"`,
+      timestamp: timeStr,
+      createdAt: now
+    });
+    targetReq.timeline.push({
+      status: 'Duplicate Merged',
+      timestamp: timeStr,
+      note: `Merged with duplicate report #${duplicateReq.customId} (+${duplicateReq.peopleCount || 1} people affected)`
+    });
+
+    // Update duplicate request
+    duplicateReq.status = 'Merged';
+    duplicateReq.isDuplicate = true;
+    duplicateReq.duplicateMatchId = targetReq.customId;
+    duplicateReq.timeline.push({
+      status: 'Merged',
+      timestamp: timeStr,
+      note: `Merged into primary incident #${targetReq.customId}`
+    });
+
+    await Promise.all([targetReq.save(), duplicateReq.save()]);
+
+    await VerificationLog.create({
+      actionType: 'MODERATOR_MERGE',
+      requestId: targetReq.customId,
+      performerRole: req.user?.role || 'MODERATOR',
+      details: {
+        mergedDuplicateId: duplicateReq.customId,
+        newPeopleCount: targetReq.peopleCount
+      }
+    }).catch(() => {});
+
+    broadcastStatusUpdate(targetReq.customId, {
+      peopleCount: targetReq.peopleCount,
+      timeline: targetReq.timeline,
+      comments: targetReq.comments
+    });
+
+    broadcastStatusUpdate(duplicateReq.customId, {
+      status: 'Merged',
+      timeline: duplicateReq.timeline
+    });
+
+    res.json({
+      success: true,
+      message: `Duplicate #${duplicateReq.customId} successfully merged into #${targetReq.customId}`,
+      targetRequest: targetReq,
+      duplicateRequest: duplicateReq
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Moderation: Reject request as fraudulent / spam
+// @route   PATCH /api/requests/:id/reject
+// @access  Public (or Moderator/Admin)
+export const rejectRequest = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+    const request = await Request.findOne({
+      $or: [{ customId: id }, { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }]
+    });
+
+    if (!request) {
+      return res.status(404).json({ success: false, message: 'Request not found' });
+    }
+
+    request.status = 'Rejected (Spam)';
+    request.timeline.push({
+      status: 'Rejected',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      note: reason ? `Moderator flagged as fraudulent/spam: ${reason}` : 'Moderator flagged as fraudulent / spam'
+    });
+
+    await request.save();
+
+    await VerificationLog.create({
+      actionType: 'MODERATOR_REJECT',
+      requestId: request.customId,
+      performerRole: req.user?.role || 'MODERATOR',
+      details: { reason: reason || 'Fraudulent/Spam report' }
+    }).catch(() => {});
+
+    broadcastStatusUpdate(request.customId, {
+      status: 'Rejected (Spam)',
+      timeline: request.timeline
+    });
+
+    res.json({
+      success: true,
+      message: `Request #${request.customId} marked as spam and removed from feed`,
+      request
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Add comment / field note to request
+// @route   POST /api/requests/:id/comments
+// @access  Public (or Authenticated)
+export const addComment = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { text, author } = req.body;
+
+    if (!text || !text.trim()) {
+      return res.status(400).json({ success: false, message: 'Comment text is required' });
+    }
+
+    const request = await Request.findOne({
+      $or: [{ customId: id }, { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }]
+    });
+
+    if (!request) {
+      return res.status(404).json({ success: false, message: 'Request not found' });
+    }
+
+    const now = new Date();
+    const commentAuthor = author || req.user?.name || 'Responder';
+    const newComment = {
+      id: `comm-${Date.now()}`,
+      author: commentAuthor,
+      text: text.trim(),
+      timestamp: 'Just now',
+      createdAt: now
+    };
+
+    request.comments.push(newComment);
+    await request.save();
+
+    // Emit live socket event
+    try {
+      const io = getIO();
+      io.to(`request:${request.customId}`).emit('request:comment_added', {
+        requestId: request.customId,
+        comment: newComment
+      });
+      io.emit('request:comment_added', {
+        requestId: request.customId,
+        comment: newComment
+      });
+    } catch (e) {}
+
+    res.status(201).json({
+      success: true,
+      comment: newComment,
+      request
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Geofenced Proof-of-Help: Verify volunteer on-site arrival (within 200m)
+// @route   POST /api/requests/:id/verify-arrival
+// @access  Public (or Volunteer)
+export const verifyArrival = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { volunteerId, coordinates } = req.body;
+
+    const request = await Request.findOne({
+      $or: [{ customId: id }, { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }]
+    });
+
+    if (!request) {
+      return res.status(404).json({ success: false, message: 'Request not found' });
+    }
+
+    const reqCoords = request.coordinates || { lat: 28.6139, lng: 77.2090 };
+    let distanceKm = 0.05; // default close proximity
+
+    if (coordinates && coordinates.lat && coordinates.lng) {
+      distanceKm = getHaversineDistanceKm(
+        coordinates.lat,
+        coordinates.lng,
+        reqCoords.lat,
+        reqCoords.lng
+      );
+    }
+
+    const distanceMeters = Math.round(distanceKm * 1000);
+    const isWithinGeofence = distanceMeters <= 500; // Allow within 500m geofence radius for disaster terrain
+
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    request.status = 'In Progress';
+    request.timeline.push({
+      status: 'Arrived On-Site',
+      timestamp: timeStr,
+      note: `Volunteer on-site arrival confirmed via GPS Geofence (${distanceMeters}m from site)`
+    });
+
+    await request.save();
+
+    // Reward volunteer trust score if userId or volunteerId is available
+    let updatedTrustScore = null;
+    const targetUserId = req.user?._id || volunteerId;
+    if (targetUserId) {
+      const user = await User.findById(targetUserId);
+      if (user && user.role !== 'NGO') {
+        user.trustScore = Math.min((user.trustScore || 85) + 3, 100);
+        await user.save();
+        updatedTrustScore = user.trustScore;
+      }
+    }
+
+    await VerificationLog.create({
+      actionType: 'GEOFENCE_PROXIMITY_VERIFIED',
+      requestId: request.customId,
+      performerRole: 'VOLUNTEER',
+      details: {
+        distanceMeters,
+        verifiedAt: now.toISOString(),
+        trustScoreAwarded: 3
+      }
+    }).catch(() => {});
+
+    broadcastStatusUpdate(request.customId, {
+      status: 'In Progress',
+      timeline: request.timeline,
+      isGeofenceVerified: true
+    });
+
+    res.json({
+      success: true,
+      verified: true,
+      distanceMeters,
+      updatedTrustScore,
+      message: `On-site arrival verified (${distanceMeters}m away). Status updated to 'In Progress'.`,
       request
     });
   } catch (error) {

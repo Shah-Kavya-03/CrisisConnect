@@ -44,5 +44,50 @@ export const requestService = {
     } catch (error) {
       throw error.response?.data || { message: 'Failed to renew request' };
     }
+  },
+
+  async approveRequest(id) {
+    try {
+      const response = await api.patch(`/requests/${id}/approve`);
+      return response.data.request;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to approve request' };
+    }
+  },
+
+  async mergeRequests(duplicateId, targetId) {
+    try {
+      const response = await api.post('/requests/merge', { duplicateId, targetId });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to merge requests' };
+    }
+  },
+
+  async rejectRequest(id, reason = '') {
+    try {
+      const response = await api.patch(`/requests/${id}/reject`, { reason });
+      return response.data.request;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to reject request' };
+    }
+  },
+
+  async addComment(id, text, author = '') {
+    try {
+      const response = await api.post(`/requests/${id}/comments`, { text, author });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to add comment' };
+    }
+  },
+
+  async verifyArrival(id, volunteerId, coordinates) {
+    try {
+      const response = await api.post(`/requests/${id}/verify-arrival`, { volunteerId, coordinates });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Failed to verify on-site arrival' };
+    }
   }
 };

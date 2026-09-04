@@ -34,6 +34,19 @@ export const initSocket = (httpServer) => {
       socket.leave(`request:${requestId}`);
     });
 
+    // Real-time volunteer live GPS telemetry broadcast
+    socket.on('volunteer:telemetry_stream', (telemetry) => {
+      io.emit('volunteer:location_update', telemetry);
+      if (telemetry.targetRequestId) {
+        io.to(`request:${telemetry.targetRequestId}`).emit('volunteer:location_update', telemetry);
+      }
+    });
+
+    // Real-time organization inventory broadcast
+    socket.on('inventory:update_broadcast', (inventoryData) => {
+      io.emit('organization:inventory_updated', inventoryData);
+    });
+
     socket.on('disconnect', () => {
       logger.info(`Socket disconnected: ${socket.id}`);
     });

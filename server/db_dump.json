@@ -1,0 +1,925 @@
+{
+  "notifications": [],
+  "organizations": [
+    {
+      "_id": "6a99d67e818ad9ce5b42369b",
+      "name": "Red Cross Relief Team B",
+      "registrationNumber": "NGO-DEL-8921",
+      "type": "Registered NGO",
+      "contactEmail": "contact@redcross-relief.org",
+      "contactPhone": "+91 90000 11111",
+      "headquartersAddress": "District Emergency Operations Center, Sector 12",
+      "jurisdictionCity": "Delhi NCR",
+      "resourcesInventory": {
+        "oxygenCylinders": 40,
+        "foodKits": 1200,
+        "drinkingWaterLiters": 5000,
+        "temporaryShelterBeds": 150,
+        "rescueBoats": 6,
+        "medicalFirstAidKits": 300
+      },
+      "isVerified": true,
+      "activeVolunteersCount": 18,
+      "createdAt": "2026-09-03T20:20:14.186Z",
+      "updatedAt": "2026-09-03T20:20:14.186Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a99d67e818ad9ce5b42369d",
+      "name": "Central Metro Community Relief Shelter",
+      "registrationNumber": "GOV-SHELTER-4401",
+      "type": "Government Agency",
+      "contactEmail": "shelter.metro@crisis.gov",
+      "contactPhone": "+91 98888 22334",
+      "headquartersAddress": "Central Stadium Complex, Metro City",
+      "jurisdictionCity": "Delhi NCR",
+      "resourcesInventory": {
+        "oxygenCylinders": 20,
+        "foodKits": 800,
+        "drinkingWaterLiters": 4000,
+        "temporaryShelterBeds": 250,
+        "rescueBoats": 2,
+        "medicalFirstAidKits": 100
+      },
+      "isVerified": true,
+      "activeVolunteersCount": 25,
+      "createdAt": "2026-09-03T20:20:14.191Z",
+      "updatedAt": "2026-09-03T20:20:14.191Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a9a32ea3474cc8d846fae19",
+      "name": "SBMP Relief Foundation",
+      "registrationNumber": "NGO-6046",
+      "type": "Registered NGO",
+      "contactEmail": "sbmp@gmail.com",
+      "contactPhone": "9022317660",
+      "headquartersAddress": "District Emergency Operations Center",
+      "jurisdictionCity": "Delhi NCR",
+      "resourcesInventory": {
+        "oxygenCylinders": 25,
+        "foodKits": 500,
+        "drinkingWaterLiters": 2000,
+        "temporaryShelterBeds": 80,
+        "rescueBoats": 4,
+        "medicalFirstAidKits": 150
+      },
+      "isVerified": true,
+      "activeVolunteersCount": 12,
+      "createdAt": "2026-09-04T02:54:34.837Z",
+      "updatedAt": "2026-09-04T02:54:34.837Z",
+      "__v": 0
+    }
+  ],
+  "verificationlogs": [
+    {
+      "_id": "6a9a0ec5c72029ff8e700684",
+      "actionType": "EXPIRY_AUTO_ARCHIVE",
+      "requestId": "CC-1042",
+      "performedByUserId": null,
+      "performerRole": "SYSTEM_CRON",
+      "details": {
+        "expiredAt": "2026-09-04T00:20:20.995Z"
+      },
+      "previousState": "Assigned",
+      "newState": "Expired",
+      "createdAt": "2026-09-04T00:20:21.074Z",
+      "updatedAt": "2026-09-04T00:20:21.074Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a9a0ec5c72029ff8e700687",
+      "actionType": "EXPIRY_AUTO_ARCHIVE",
+      "requestId": "CC-1043",
+      "performedByUserId": null,
+      "performerRole": "SYSTEM_CRON",
+      "details": {
+        "expiredAt": "2026-09-04T00:20:20.995Z"
+      },
+      "previousState": "Awaiting Help",
+      "newState": "Expired",
+      "createdAt": "2026-09-04T00:20:21.084Z",
+      "updatedAt": "2026-09-04T00:20:21.084Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a9a33273474cc8d846fae2d",
+      "actionType": "AI_DUPLICATE_FLAG",
+      "requestId": "CC-6708",
+      "performedByUserId": null,
+      "performerRole": "SYSTEM_AI",
+      "details": {
+        "matchedWith": "CC-3066",
+        "similarityScore": 100,
+        "reasons": [
+          "Hyper-local proximity (0m apart)",
+          "Identical crisis category: Rescue",
+          "Strong semantic description overlap (100%)"
+        ]
+      },
+      "previousState": null,
+      "newState": null,
+      "createdAt": "2026-09-04T02:55:35.678Z",
+      "updatedAt": "2026-09-04T02:55:35.678Z",
+      "__v": 0
+    }
+  ],
+  "volunteers": [
+    {
+      "_id": "6a99d67e818ad9ce5b4236a7",
+      "userId": "6a99d67e818ad9ce5b4236a1",
+      "skills": [
+        "First Aid / BLS",
+        "Emergency Response",
+        "Medical Triage",
+        "Ambulance Driving"
+      ],
+      "vehicleType": "Ambulance / Medical Van",
+      "isAvailable": true,
+      "serviceRadiusKm": 25,
+      "currentLocation": {
+        "type": "Point",
+        "coordinates": [
+          77.21,
+          28.615
+        ]
+      },
+      "activeAssignmentId": null,
+      "verificationStatus": "Verified",
+      "idCardNumber": "MED-VOL-98214",
+      "totalHoursVolunteered": 142,
+      "createdAt": "2026-09-03T20:20:14.457Z",
+      "updatedAt": "2026-09-03T20:20:14.457Z",
+      "__v": 0
+    }
+  ],
+  "admins": [
+    {
+      "_id": "6a99d67e818ad9ce5b4236ab",
+      "userId": "6a99d67e818ad9ce5b4236a3",
+      "department": "State Emergency Command Center",
+      "accessLevel": "SuperAdmin",
+      "badgeNumber": "CMD-001",
+      "assignedJurisdiction": "National Capital Region",
+      "permissions": [
+        "ALL_PERMISSIONS",
+        "MANAGE_REQUESTS",
+        "MODERATE_DUPLICATES",
+        "DISPATCH_VOLUNTEERS",
+        "EXPORT_REPORTS",
+        "MANAGE_ORGANIZATIONS"
+      ],
+      "dutyStatus": "On Duty",
+      "actionsPerformedCount": 154,
+      "lastActiveAt": "2026-09-03T20:20:14.461Z",
+      "createdAt": "2026-09-03T20:20:14.462Z",
+      "updatedAt": "2026-09-03T20:20:14.462Z",
+      "__v": 0
+    }
+  ],
+  "matches": [],
+  "users": [
+    {
+      "_id": "6a99d67e818ad9ce5b42369f",
+      "name": "Ananya Sharma",
+      "email": "ananya@crisis.org",
+      "phone": "+91 98765 43210",
+      "password": "$2a$10$H9vaoFawF3nBJihIN8xHOOv1ZcgtWRZcski0kNLL9TKGP84UYuI2C",
+      "role": "Requester",
+      "location": {
+        "address": "Central Heights, Sector 4, Metro Area",
+        "coordinates": {
+          "lat": 28.6139,
+          "lng": 77.209
+        }
+      },
+      "trustScore": 88,
+      "completedAssignments": 0,
+      "abandonedAssignments": 0,
+      "avgResponseMinutes": 15,
+      "badges": [
+        "🔰 Verified Requester"
+      ],
+      "isVerified": true,
+      "organizationId": null,
+      "createdAt": "2026-09-03T20:20:14.195Z",
+      "updatedAt": "2026-09-03T20:20:14.195Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a99d67e818ad9ce5b4236a1",
+      "name": "Dr. Rahul Verma",
+      "email": "rahul@relief.org",
+      "phone": "+91 91234 56789",
+      "password": "$2a$10$CSZbl9lDhzbxUmFDEkKaSekb8IR60tvhY09AZwfDt9T.k8zaWl4Mu",
+      "role": "Volunteer",
+      "location": {
+        "address": "Apollo Clinic, Block B, Metro Area",
+        "coordinates": {
+          "lat": 28.615,
+          "lng": 77.21
+        }
+      },
+      "trustScore": 98,
+      "completedAssignments": 48,
+      "abandonedAssignments": 0,
+      "avgResponseMinutes": 11,
+      "badges": [
+        "🏆 Reliable Responder",
+        "⚡ Rapid Action",
+        "🩺 Medical Specialist"
+      ],
+      "isVerified": true,
+      "organizationId": null,
+      "createdAt": "2026-09-03T20:20:14.268Z",
+      "updatedAt": "2026-09-03T20:20:14.268Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a99d67e818ad9ce5b4236a3",
+      "name": "Operations Commander",
+      "email": "admin@crisis.gov",
+      "phone": "+91 98111 22233",
+      "password": "$2a$10$6u2/p22OxaXOwGzDoDkb5OSh5PCOYvPGDsL801P1RlbzsN2sQk5au",
+      "role": "Admin",
+      "location": {
+        "address": "State Emergency Command Center",
+        "coordinates": {
+          "lat": 28.62,
+          "lng": 77.215
+        }
+      },
+      "trustScore": 100,
+      "completedAssignments": 0,
+      "abandonedAssignments": 0,
+      "avgResponseMinutes": 15,
+      "badges": [
+        "🛡️ Command Dispatcher"
+      ],
+      "isVerified": true,
+      "organizationId": null,
+      "createdAt": "2026-09-03T20:20:14.332Z",
+      "updatedAt": "2026-09-03T20:20:14.332Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a99d67e818ad9ce5b4236a5",
+      "name": "Red Cross Admin",
+      "email": "ngo@redcross.org",
+      "phone": "+91 90000 11111",
+      "password": "$2a$10$qVW5S.jro2RnZzw9797fb.PnFipmR8BfTVrkhbjcjpddra9Shpxtm",
+      "role": "NGO",
+      "location": {
+        "address": "Red Cross Relief Headquarters",
+        "coordinates": {
+          "lat": 28.61,
+          "lng": 77.205
+        }
+      },
+      "trustScore": 99,
+      "completedAssignments": 0,
+      "abandonedAssignments": 0,
+      "avgResponseMinutes": 15,
+      "badges": [
+        "🤝 NGO Partner"
+      ],
+      "isVerified": true,
+      "organizationId": "6a99d67e818ad9ce5b42369b",
+      "createdAt": "2026-09-03T20:20:14.394Z",
+      "updatedAt": "2026-09-03T20:20:14.394Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a9a31ec3474cc8d846fae02",
+      "name": "Kavya Shah",
+      "email": "shahkavya0307@gmail.com",
+      "phone": "8551999221",
+      "password": "$2a$10$YXR62Va95PLeBi7MbsYz4ONpgb5x1p29ym5pmqv8HXdcXDmq0advK",
+      "role": "Requester",
+      "location": {
+        "coordinates": {
+          "lat": 28.6139,
+          "lng": 77.209
+        },
+        "address": "Central Metro Area"
+      },
+      "trustScore": 85,
+      "trustScoreLastUpdatedBy": "Principal Admin Authority",
+      "trustScoreUpdateReason": "Baseline Registration Score",
+      "completedAssignments": 0,
+      "abandonedAssignments": 0,
+      "avgResponseMinutes": 15,
+      "badges": [
+        "🔰 Verified Requester"
+      ],
+      "isVerified": false,
+      "organizationId": null,
+      "createdAt": "2026-09-04T02:50:20.640Z",
+      "updatedAt": "2026-09-04T02:50:20.640Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a9a32ea3474cc8d846fae17",
+      "name": "SBMP",
+      "email": "sbmp@gmail.com",
+      "phone": "9022317660",
+      "password": "$2a$10$vFc1AkzAQH51/eV3dPZCYOpp2yaWmbI1ZIoyRy0RUWQS8S8rVAjnW",
+      "role": "NGO",
+      "location": {
+        "coordinates": {
+          "lat": 28.6139,
+          "lng": 77.209
+        },
+        "address": "Central Metro Area"
+      },
+      "trustScoreLastUpdatedBy": "Principal Admin Authority",
+      "trustScoreUpdateReason": "Baseline Registration Score",
+      "completedAssignments": 0,
+      "abandonedAssignments": 0,
+      "avgResponseMinutes": 15,
+      "badges": [
+        "🏢 Registered Agency"
+      ],
+      "isVerified": false,
+      "organizationId": "6a9a32ea3474cc8d846fae19",
+      "createdAt": "2026-09-04T02:54:34.739Z",
+      "updatedAt": "2026-09-04T02:54:34.846Z",
+      "__v": 0
+    }
+  ],
+  "requests": [
+    {
+      "_id": "6a99d67e818ad9ce5b4236ad",
+      "customId": "CC-1042",
+      "title": "Urgent Insulin & Oxygen Supply Required",
+      "description": "Elderly diabetic patient trapped in flooded apartment complex with low oxygen cylinder levels. Requires immediate medical supply dispatch.",
+      "category": "Medical",
+      "urgency": "Critical",
+      "aiPriorityScore": 96,
+      "locationName": "Central Heights, Sector 4, Metro Area",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.209,
+          28.6139
+        ]
+      },
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      },
+      "requesterId": "6a99d67e818ad9ce5b42369f",
+      "requesterName": "Ananya Sharma",
+      "requesterPhone": "+91 98765 43210",
+      "status": "Expired",
+      "assignedTo": {
+        "id": "VOL-802",
+        "userId": "6a99d67e818ad9ce5b4236a1",
+        "name": "Dr. Rahul Verma",
+        "type": "Volunteer Doctor",
+        "trustScore": 98,
+        "phone": "+91 91234 56789"
+      },
+      "isDuplicate": false,
+      "duplicateMatchId": null,
+      "similarityScore": 0,
+      "duplicateReasons": [],
+      "keywords": [
+        "diabetic",
+        "oxygen cylinder",
+        "flooded",
+        "medical supply",
+        "immediate"
+      ],
+      "timeline": [
+        {
+          "status": "Created",
+          "timestamp": "10:15 AM",
+          "note": "Emergency request submitted via Web App"
+        },
+        {
+          "status": "AI Triaged",
+          "timestamp": "10:16 AM",
+          "note": "AI Auto-Triage assigned CRITICAL (96/100)"
+        },
+        {
+          "status": "Volunteer Assigned",
+          "timestamp": "10:22 AM",
+          "note": "Assigned to Dr. Rahul Verma (Dispatched)"
+        },
+        {
+          "status": "Expired",
+          "timestamp": "05:50 am",
+          "note": "Request auto-expired by CrisisConnect Life-Preserving Lease daemon due to no renewal."
+        }
+      ],
+      "peopleCount": 1,
+      "expiresAt": "2026-09-04T00:20:14.467Z",
+      "__v": 1,
+      "createdAt": "2026-09-03T20:20:14.470Z",
+      "updatedAt": "2026-09-04T00:20:21.061Z"
+    },
+    {
+      "_id": "6a99d67e818ad9ce5b4236ae",
+      "customId": "CC-1043",
+      "title": "Family Trapped on Roof due to Rising Floodwaters",
+      "description": "4 adults and 2 children stuck on rooftop near Riverside Colony. Water levels rising rapidly.",
+      "category": "Rescue",
+      "urgency": "Critical",
+      "aiPriorityScore": 98,
+      "locationName": "Riverside Colony, Block C, River Bank",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.218,
+          28.625
+        ]
+      },
+      "coordinates": {
+        "lat": 28.625,
+        "lng": 77.218
+      },
+      "requesterId": "6a99d67e818ad9ce5b42369f",
+      "requesterName": "Vikram Singh",
+      "requesterPhone": "+91 99887 76655",
+      "status": "Expired",
+      "assignedTo": null,
+      "isDuplicate": false,
+      "duplicateMatchId": null,
+      "similarityScore": 0,
+      "duplicateReasons": [],
+      "keywords": [
+        "trapped",
+        "roof",
+        "flooded",
+        "children",
+        "rising water"
+      ],
+      "timeline": [
+        {
+          "status": "Created",
+          "timestamp": "10:25 AM",
+          "note": "Submitted via 1-Tap SOS Button"
+        },
+        {
+          "status": "AI Triaged",
+          "timestamp": "10:26 AM",
+          "note": "AI Auto-Triage assigned CRITICAL (98/100)"
+        },
+        {
+          "status": "Expired",
+          "timestamp": "05:50 am",
+          "note": "Request auto-expired by CrisisConnect Life-Preserving Lease daemon due to no renewal."
+        }
+      ],
+      "peopleCount": 1,
+      "expiresAt": "2026-09-04T00:20:14.467Z",
+      "__v": 1,
+      "createdAt": "2026-09-03T20:20:14.470Z",
+      "updatedAt": "2026-09-04T00:20:21.082Z"
+    },
+    {
+      "_id": "6a99d67e818ad9ce5b4236af",
+      "customId": "CC-1044",
+      "title": "Clean Drinking Water Packets for 50 Evacuees",
+      "description": "Community center shelter hosting families displaced by storm. Running out of drinking water.",
+      "category": "Food & Water",
+      "urgency": "High",
+      "aiPriorityScore": 84,
+      "locationName": "Community Hall, Sector 12",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.225,
+          28.601
+        ]
+      },
+      "coordinates": {
+        "lat": 28.601,
+        "lng": 77.225
+      },
+      "requesterId": null,
+      "requesterName": "Priya Mehta (NGO Co-ordinator)",
+      "requesterPhone": "+91 97654 32109",
+      "status": "En Route",
+      "assignedTo": {
+        "id": "NGO-102",
+        "name": "Red Cross Relief Team B",
+        "type": "Registered NGO",
+        "trustScore": 99,
+        "phone": "+91 90000 11111",
+        "userId": null
+      },
+      "isDuplicate": false,
+      "duplicateMatchId": null,
+      "similarityScore": 0,
+      "duplicateReasons": [],
+      "keywords": [
+        "drinking water",
+        "shelter",
+        "displaced",
+        "evacuees"
+      ],
+      "timeline": [
+        {
+          "status": "Created",
+          "timestamp": "09:45 AM",
+          "note": "Standard request created"
+        },
+        {
+          "status": "AI Triaged",
+          "timestamp": "09:46 AM",
+          "note": "AI Auto-Triage assigned HIGH (84/100)"
+        },
+        {
+          "status": "Volunteer Assigned",
+          "timestamp": "10:00 AM",
+          "note": "Red Cross Relief Team B accepted"
+        },
+        {
+          "status": "Volunteer En Route",
+          "timestamp": "10:20 AM",
+          "note": "Water truck dispatched & en route"
+        },
+        {
+          "status": "Duplicate Merged",
+          "timestamp": "08:25 am",
+          "note": "Merged with duplicate report #CC-9718 (+1 people affected)"
+        }
+      ],
+      "peopleCount": 2,
+      "expiresAt": "2026-09-04T00:20:14.468Z",
+      "__v": 1,
+      "createdAt": "2026-09-03T20:20:14.471Z",
+      "updatedAt": "2026-09-04T02:55:02.824Z",
+      "comments": [
+        {
+          "author": "System Auto-Merge",
+          "text": "Merged duplicate report #CC-9718: \"Citizen emergency request submitted.\"",
+          "timestamp": "08:25 am",
+          "createdAt": "2026-09-04T02:55:02.818Z",
+          "id": "comm-1788490502820"
+        }
+      ]
+    },
+    {
+      "_id": "6a9a32263474cc8d846fae08",
+      "customId": "CC-9718",
+      "title": "Medical Support Request",
+      "description": "Citizen emergency request submitted.",
+      "category": "Medical",
+      "urgency": "High",
+      "aiPriorityScore": 75,
+      "locationName": "Sector 4, Central Metro Area",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.21,
+          28.615
+        ]
+      },
+      "coordinates": {
+        "lat": 28.615,
+        "lng": 77.21
+      },
+      "requesterId": null,
+      "requesterName": "Anonymous Requester",
+      "requesterPhone": "+91 98765 00000",
+      "status": "Merged",
+      "assignedTo": {
+        "id": null,
+        "userId": null,
+        "name": null,
+        "type": null,
+        "trustScore": 85,
+        "phone": null
+      },
+      "expiresAt": "2026-09-04T06:51:18.435Z",
+      "isDuplicate": true,
+      "duplicateMatchId": "CC-1044",
+      "similarityScore": 15,
+      "duplicateReasons": [],
+      "keywords": [
+        "Standard assistance request without acute life hazards detected."
+      ],
+      "timeline": [
+        {
+          "status": "Created",
+          "timestamp": "08:21 am",
+          "note": "Request submitted via CrisisConnect portal"
+        },
+        {
+          "status": "AI Triaged",
+          "timestamp": "08:21 am",
+          "note": "AI Auto-Triage: Assigned priority (75/100). Request validated."
+        },
+        {
+          "status": "Merged",
+          "timestamp": "08:25 am",
+          "note": "Merged into primary incident #CC-1044"
+        }
+      ],
+      "peopleCount": 1,
+      "comments": [],
+      "createdAt": "2026-09-04T02:51:18.525Z",
+      "updatedAt": "2026-09-04T02:55:02.825Z",
+      "__v": 1
+    },
+    {
+      "_id": "6a9a324a3474cc8d846fae0b",
+      "customId": "SMS-9022",
+      "title": "🚨 2G/SMS SOS: Flash flooding near Sector 4 community center, 4 peo...",
+      "description": "Automated Low-Bandwidth SMS Intake from +91 8551999221: \"Flash flooding near Sector 4 community center, 4 people trapped on rooftop, need boat urgently.\"",
+      "category": "Rescue",
+      "urgency": "Critical",
+      "aiPriorityScore": 99,
+      "locationName": "SMS Cell Tower Triangulation (Lat: 28.6139, Lng: 77.2090)",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.209,
+          28.6139
+        ]
+      },
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      },
+      "requesterId": null,
+      "requesterName": "SMS Citizen (+91 8551999221)",
+      "requesterPhone": "+91 8551999221",
+      "status": "Awaiting Help",
+      "assignedTo": {
+        "id": null,
+        "userId": null,
+        "name": null,
+        "type": null,
+        "trustScore": 85,
+        "phone": null
+      },
+      "expiresAt": "2026-09-04T06:51:54.013Z",
+      "isDuplicate": false,
+      "duplicateMatchId": null,
+      "similarityScore": 0,
+      "duplicateReasons": [],
+      "keywords": [
+        "Acute danger indicators detected: trapped, roof"
+      ],
+      "timeline": [
+        {
+          "status": "Created",
+          "timestamp": "08:21 am",
+          "note": "Received via 2G/SMS Gateway from +91 8551999221"
+        },
+        {
+          "status": "AI Triaged",
+          "timestamp": "08:21 am",
+          "note": "AI NLP Triage: Assigned priority (99/100, category: Rescue)"
+        }
+      ],
+      "peopleCount": 1,
+      "comments": [],
+      "createdAt": "2026-09-04T02:51:54.019Z",
+      "updatedAt": "2026-09-04T02:51:54.019Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a9a326b3474cc8d846fae0e",
+      "customId": "SMS-2899",
+      "title": "🚨 2G/SMS SOS: Elderly diabetic patient out of insulin and oxygen a...",
+      "description": "Automated Low-Bandwidth SMS Intake from +91 8551999221: \"Elderly diabetic patient out of insulin and oxygen at Sector 14 clinic.\"",
+      "category": "Oxygen",
+      "urgency": "Critical",
+      "aiPriorityScore": 99,
+      "locationName": "SMS Cell Tower Triangulation (Lat: 28.6139, Lng: 77.2090)",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.209,
+          28.6139
+        ]
+      },
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      },
+      "requesterId": null,
+      "requesterName": "SMS Citizen (+91 8551999221)",
+      "requesterPhone": "+91 8551999221",
+      "status": "Awaiting Help",
+      "assignedTo": {
+        "id": null,
+        "userId": null,
+        "name": null,
+        "type": null,
+        "trustScore": 85,
+        "phone": null
+      },
+      "expiresAt": "2026-09-04T06:52:27.141Z",
+      "isDuplicate": false,
+      "duplicateMatchId": null,
+      "similarityScore": 0,
+      "duplicateReasons": [],
+      "keywords": [
+        "Vulnerable demographic markers: elderly, diabetic, insulin"
+      ],
+      "timeline": [
+        {
+          "status": "Created",
+          "timestamp": "08:22 am",
+          "note": "Received via 2G/SMS Gateway from +91 8551999221"
+        },
+        {
+          "status": "AI Triaged",
+          "timestamp": "08:22 am",
+          "note": "AI NLP Triage: Assigned priority (99/100, category: Oxygen)"
+        }
+      ],
+      "peopleCount": 1,
+      "comments": [],
+      "createdAt": "2026-09-04T02:52:27.144Z",
+      "updatedAt": "2026-09-04T02:52:27.144Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a9a33243474cc8d846fae28",
+      "customId": "CC-3066",
+      "title": "Rescue AI-Triaged Emergency",
+      "description": "4 people trapped on rooftop near river bank with rising flood water. 1 infant with fever. Need immediate boat rescue.",
+      "category": "Rescue",
+      "urgency": "Critical",
+      "aiPriorityScore": 99,
+      "locationName": "Live AI Triage Test Location",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.21,
+          28.615
+        ]
+      },
+      "coordinates": {
+        "lat": 28.615,
+        "lng": 77.21
+      },
+      "requesterId": null,
+      "requesterName": "Anonymous Requester",
+      "requesterPhone": "+91 98765 00000",
+      "status": "Awaiting Help",
+      "assignedTo": {
+        "id": null,
+        "userId": null,
+        "name": null,
+        "type": null,
+        "trustScore": 85,
+        "phone": null
+      },
+      "expiresAt": "2026-09-04T06:55:32.270Z",
+      "isDuplicate": false,
+      "duplicateMatchId": "SMS-9022",
+      "similarityScore": 51.4,
+      "duplicateReasons": [
+        "Hyper-local proximity (156m apart)",
+        "Identical crisis category: Rescue"
+      ],
+      "keywords": [
+        "Acute danger indicators detected: trapped, roof",
+        "Vulnerable demographic markers: infant"
+      ],
+      "timeline": [
+        {
+          "status": "Created",
+          "timestamp": "08:25 am",
+          "note": "Request submitted via CrisisConnect portal"
+        },
+        {
+          "status": "AI Triaged",
+          "timestamp": "08:25 am",
+          "note": "AI Auto-Triage: Assigned priority (99/100). Request validated."
+        }
+      ],
+      "peopleCount": 1,
+      "comments": [],
+      "createdAt": "2026-09-04T02:55:32.290Z",
+      "updatedAt": "2026-09-04T02:55:32.290Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a9a33273474cc8d846fae2b",
+      "customId": "CC-6708",
+      "title": "Rescue AI-Triaged Emergency",
+      "description": "4 people trapped on rooftop near river bank with rising flood water. 1 infant with fever. Need immediate boat rescue.",
+      "category": "Rescue",
+      "urgency": "Critical",
+      "aiPriorityScore": 99,
+      "locationName": "Live AI Triage Test Location",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.21,
+          28.615
+        ]
+      },
+      "coordinates": {
+        "lat": 28.615,
+        "lng": 77.21
+      },
+      "requesterId": null,
+      "requesterName": "Anonymous Requester",
+      "requesterPhone": "+91 98765 00000",
+      "status": "Flagged Duplicate",
+      "assignedTo": {
+        "id": null,
+        "userId": null,
+        "name": null,
+        "type": null,
+        "trustScore": 85,
+        "phone": null
+      },
+      "expiresAt": "2026-09-04T06:55:35.660Z",
+      "isDuplicate": true,
+      "duplicateMatchId": "CC-3066",
+      "similarityScore": 100,
+      "duplicateReasons": [
+        "Hyper-local proximity (0m apart)",
+        "Identical crisis category: Rescue",
+        "Strong semantic description overlap (100%)"
+      ],
+      "keywords": [
+        "Acute danger indicators detected: trapped, roof",
+        "Vulnerable demographic markers: infant"
+      ],
+      "timeline": [
+        {
+          "status": "Created",
+          "timestamp": "08:25 am",
+          "note": "Request submitted via CrisisConnect portal"
+        },
+        {
+          "status": "AI Triaged",
+          "timestamp": "08:25 am",
+          "note": "AI Auto-Triage: Assigned priority (99/100). ⚠️ Flagged 100% duplicate match to #CC-3066"
+        }
+      ],
+      "peopleCount": 1,
+      "comments": [],
+      "createdAt": "2026-09-04T02:55:35.675Z",
+      "updatedAt": "2026-09-04T02:55:35.675Z",
+      "__v": 0
+    }
+  ],
+  "requesters": [
+    {
+      "_id": "6a99d67e818ad9ce5b4236a9",
+      "userId": "6a99d67e818ad9ce5b42369f",
+      "emergencyContact": {
+        "name": "Rohan Sharma",
+        "phone": "+91 98765 11223",
+        "relationship": "Brother"
+      },
+      "medicalConditions": [
+        "Diabetic",
+        "Elderly Family Member"
+      ],
+      "householdCount": 4,
+      "defaultAddress": "Central Heights, Sector 4, Metro Area",
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          77.209,
+          28.6139
+        ]
+      },
+      "specialNeedsNotes": "Requires refrigeration for insulin medication; 1st floor apartment prone to waterlogging.",
+      "totalRequestsCreated": 2,
+      "activeRequestIds": [],
+      "createdAt": "2026-09-03T20:20:14.459Z",
+      "updatedAt": "2026-09-03T20:20:14.459Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a9a31ec3474cc8d846fae04",
+      "userId": "6a9a31ec3474cc8d846fae02",
+      "emergencyContact": {
+        "name": "",
+        "phone": "",
+        "relationship": "Family"
+      },
+      "medicalConditions": [],
+      "householdCount": 1,
+      "defaultAddress": "Central Metro Area",
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          77.209,
+          28.6139
+        ]
+      },
+      "specialNeedsNotes": "",
+      "totalRequestsCreated": 0,
+      "activeRequestIds": [],
+      "createdAt": "2026-09-04T02:50:20.802Z",
+      "updatedAt": "2026-09-04T02:50:20.802Z",
+      "__v": 0
+    }
+  ]
+}

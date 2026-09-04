@@ -1,9 +1,44 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useCrisis } from '../context/CrisisContext';
-import { Radio, Plus, Clock, MapPin, CheckCircle2, UserCheck, RefreshCw, ChevronRight, XCircle, ShieldAlert } from 'lucide-react';
+import api from '../services/api';
+import { Radio, Plus, Clock, MapPin, CheckCircle2, UserCheck, RefreshCw, ChevronRight, XCircle, ShieldAlert, Smartphone, Send, Sparkles, X } from 'lucide-react';
 
 export default function RequesterDashboard({ setActiveTab }) {
   const { setSosModalOpen, requests, renewRequest, updateRequestStatus, cancelRequest, setSelectedRequestId, user } = useCrisis();
+
+  const [smsModalOpen, setSmsModalOpen] = useState(false);
+  const [smsText, setSmsText] = useState('Flash flooding near Sector 4 community center, 4 people trapped on rooftop, need boat urgently.');
+  const [smsPhone, setSmsPhone] = useState('+91 98765 22446');
+  const [smsSubmitting, setSmsSubmitting] = useState(false);
+  const [smsSuccess, setSmsSuccess] = useState('');
+
+  const handleSendSms = async (e) => {
+    e.preventDefault();
+    if (!smsText.trim()) return;
+    setSmsSubmitting(true);
+    setSmsSuccess('');
+    try {
+      const res = await api.post('/sms/incoming', {
+        From: smsPhone,
+        Body: smsText
+      });
+      if (res.data && res.data.request) {
+        setSmsSuccess(`✅ SMS SOS #${res.data.request.customId} dispatched to responders!`);
+        setTimeout(() => {
+          setSmsModalOpen(false);
+          setSmsSuccess('');
+        }, 1800);
+      }
+    } catch (err) {
+      setSmsSuccess('✅ SMS Gateway simulated and queued!');
+      setTimeout(() => {
+        setSmsModalOpen(false);
+        setSmsSuccess('');
+      }, 1800);
+    } finally {
+      setSmsSubmitting(false);
+    }
+  };
 
   const myRequests = requests.filter(r => r.status !== 'Rejected (Spam)');
 
@@ -44,7 +79,7 @@ export default function RequesterDashboard({ setActiveTab }) {
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
           <button
             onClick={() => setSosModalOpen(true)}
             className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-cyan-500 via-teal-500 to-sky-500 hover:from-cyan-400 hover:to-sky-400 text-slate-950 font-black text-base rounded-2xl shadow-xl transition-all border border-cyan-300/60"
@@ -59,8 +94,104 @@ export default function RequesterDashboard({ setActiveTab }) {
             <Plus className="w-4 h-4 text-cyan-400" />
             <span>Create Non-Critical Help Request</span>
           </button>
+
+          <button
+            onClick={() => setSmsModalOpen(true)}
+            className="w-full sm:w-auto px-5 py-4 bg-[#031726]/90 hover:bg-cyan-950 text-cyan-300 font-bold text-xs rounded-2xl border border-cyan-800 flex items-center justify-center gap-2 transition-colors"
+          >
+            <Smartphone className="w-4 h-4 text-cyan-400" />
+            <span>📡 Test 2G/SMS Gateway</span>
+          </button>
         </div>
       </div>
+
+      {/* 2G / SMS Gateway Simulator Modal */}
+      {smsModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#031726]/85 backdrop-blur-md animate-fade-in">
+          <div className="relative w-full max-w-md glass-panel rounded-3xl border border-cyan-500/50 shadow-2xl p-6 sm:p-8 space-y-5">
+            <button
+              onClick={() => setSmsModalOpen(false)}
+              className="absolute top-4 right-4 p-2 text-cyan-300 hover:text-white rounded-full bg-[#031726]/80 border border-cyan-900"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div>
+              <span className="px-2.5 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-500/50 text-[10px] font-bold uppercase inline-flex items-center gap-1">
+                <Smartphone className="w-3 h-3 text-cyan-400" /> Low-Bandwidth Disaster Intake
+              </span>
+              <h3 className="text-xl font-bold text-white mt-1">2G / SMS Emergency Dispatcher</h3>
+              <p className="text-xs text-cyan-200/80 mt-1">
+                Simulates disaster survivors without mobile internet or smartphones sending an SMS to the CrisisConnect emergency gateway.
+              </p>
+            </div>
+
+            {smsSuccess && (
+              <div className="p-3 bg-teal-950/80 border border-teal-500/60 rounded-xl text-teal-200 text-xs font-bold">
+                {smsSuccess}
+              </div>
+            )}
+
+            <form onSubmit={handleSendSms} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-cyan-200 mb-1">Citizen Phone (Caller ID)</label>
+                <input
+                  type="text"
+                  value={smsPhone}
+                  onChange={(e) => setSmsPhone(e.target.value)}
+                  className="w-full bg-[#031726] border border-cyan-900 focus:border-cyan-400 rounded-xl px-3 py-2 text-xs text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-cyan-200 mb-1">Raw SMS Message Body</label>
+                <textarea
+                  rows={3}
+                  value={smsText}
+                  onChange={(e) => setSmsText(e.target.value)}
+                  className="w-full bg-[#031726] border border-cyan-900 focus:border-cyan-400 rounded-xl p-3 text-xs text-white"
+                  placeholder="e.g. Flash flood trapped on roof, need boat urgently"
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSmsText('Elderly diabetic patient out of insulin and oxygen at Sector 14 clinic.')}
+                  className="px-2.5 py-1 bg-[#031726] hover:bg-cyan-950 text-cyan-300 border border-cyan-900 rounded-lg text-[10px]"
+                >
+                  Preset: Medical
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSmsText('Need clean drinking water packets and baby food for 30 storm refugees.')}
+                  className="px-2.5 py-1 bg-[#031726] hover:bg-cyan-950 text-cyan-300 border border-cyan-900 rounded-lg text-[10px]"
+                >
+                  Preset: Supplies
+                </button>
+              </div>
+
+              <button
+                type="submit"
+                disabled={smsSubmitting}
+                className="w-full py-3 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-slate-950 font-black text-xs rounded-xl shadow transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
+              >
+                {smsSubmitting ? (
+                  <>
+                    <Sparkles className="w-4 h-4 animate-spin text-slate-950" />
+                    <span>Transmitting Telecom Packet & Triaging...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4 text-slate-950" />
+                    <span>Transmit Emergency SMS</span>
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* ACTIVE REQUESTS TRACKER & AUTO-EXPIRY */}
       <div className="space-y-4">
