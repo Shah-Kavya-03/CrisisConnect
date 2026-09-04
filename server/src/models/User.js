@@ -94,7 +94,15 @@ UserSchema.pre('save', async function (next) {
 });
 
 UserSchema.methods.matchPassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
+  if (!this.password || !enteredPassword) return false;
+  if (this.password.startsWith('$2a$') || this.password.startsWith('$2b$')) {
+    try {
+      return await bcrypt.compare(enteredPassword, this.password);
+    } catch {
+      return false;
+    }
+  }
+  return this.password === enteredPassword;
 };
 
 export default mongoose.models.User || mongoose.model('User', UserSchema);

@@ -42,7 +42,7 @@ export default function Signup({ setAuthMode }) {
     setErrorMsg('');
 
     try {
-      // Register with database API collection
+      // Register directly with MongoDB Database API (bcrypt encrypted in database)
       const data = await authService.register({
         name: formData.name,
         email: formData.email,
@@ -57,33 +57,10 @@ export default function Signup({ setAuthMode }) {
         setActiveRole(data.user.role);
       }
     } catch (err) {
-      console.warn('Backend registration error:', err);
-
-      // Resilient fallback for offline demonstration
-      if (err.message === 'Network Error' || err.code === 'ERR_NETWORK') {
-        const fallbackUser = {
-          name: formData.name || 'New Member',
-          email: formData.email,
-          phone: formData.phone || '+91 98765 43210',
-          role: formData.role,
-          // Note: NGOs have NO trust score
-          trustScore: formData.role === 'NGO' ? undefined : 90,
-          completedAssignments: 0,
-          abandonedAssignments: 0,
-          avgResponseMinutes: 15,
-          badges: formData.role === 'Volunteer' 
-            ? ['🔰 Newly Verified Responder', '⚡ Emergency Standby']
-            : formData.role === 'NGO'
-            ? ['🏢 Registered NGO Agency']
-            : ['🔰 Verified Citizen']
-        };
-        setUser(fallbackUser);
-        setActiveRole(formData.role);
-        setLoading(false);
-        return;
-      }
-
-      setErrorMsg(err.message || 'Registration failed. Please check inputs and try again.');
+      console.error('Database registration error:', err);
+      setErrorMsg(
+        err.message || 'Registration failed. Please ensure MongoDB is running and your inputs are valid.'
+      );
     } finally {
       setLoading(false);
     }

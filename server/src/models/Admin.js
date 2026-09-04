@@ -4,8 +4,15 @@ const AdminSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-    unique: true
+    required: false
+  },
+  email: {
+    type: String,
+    trim: true,
+    lowercase: true
+  },
+  password: {
+    type: String
   },
   department: {
     type: String,
@@ -44,7 +51,8 @@ const AdminSchema = new mongoose.Schema({
     default: Date.now
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  strict: false
 });
 
 export default mongoose.models.Admin || mongoose.model('Admin', AdminSchema);
